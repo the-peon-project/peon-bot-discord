@@ -1,12 +1,11 @@
 # bot.py
 import os
-import random
-import json
 import re
 import logging
 from discord.ext import commands
 from dotenv import load_dotenv
-from modules.peonOrcRest import *
+from modules.peon_orc_api import *
+from modules.messaging import *
 
 
 load_dotenv()
@@ -14,7 +13,6 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='!')
 
-responses = json.load(open("/root/peon-bot-discord/app/documents/quotes.json"))
 with open('/root/peon-bot-discord/app/documents/help.md') as f:
     helpText = f.readlines()
 
@@ -47,7 +45,7 @@ async def getAll(ctx):
 async def register(ctx, *args):
     print("Server registration requested.")
     if len(args) != 3:
-        await ctx.send(":fire: {0} :fire:\n\n*Please see example below:*\n```c\n!register uniqueName orchestratorUrl:port apiKey\n```".format(random.choice(responses["deny"])))
+        await ctx.send(errorMessage('parameterCount','register'))
 
 
 @bot.command(name='usage')
