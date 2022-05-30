@@ -12,7 +12,7 @@ An **OpenSource** project to assist gamers in self-deploying/managing game serve
 Intended to be a one-stop-shop for game server deployment/management.\
 If run on a public/paid cloud, it is architected to try to minimise costs (easy schedule/manage uptime vs downtime)
 
-### Peon Bot Discrod (peon.bot.discord)
+### Peon Bot Discord (peon.bot.discord)
 
 The [github](https://github.com/nox-noctua-consulting/peon-bot-discord/) repo for developing the peon server orchestrator.
 
