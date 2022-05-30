@@ -6,6 +6,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from modules.peon_orc_api import *
 from modules.messaging import *
+from modules import project_path, settings
 
 
 load_dotenv()
@@ -13,11 +14,7 @@ TOKEN = os.getenv('DISCORD_TOKEN')
 
 bot = commands.Bot(command_prefix='!')
 
-with open('/root/peon-bot-discord/app/documents/help.md') as f:
-    helpText = f.readlines()
-
-usageText = (open("/root/peon-bot-discord/app/documents/help.md", "r")).read()
-
+usageText = (open(f"{project_path}/documents/help.md", "r")).read()
 
 @bot.event
 async def on_ready():
@@ -31,7 +28,7 @@ async def on_ready():
 
 @bot.command(name='poke')
 async def poke(ctx):
-    await ctx.send(random.choice(responses["respond"]))
+    await ctx.send(f"*{quote('hello')}*")
 
 @bot.command(name='getall')
 async def getAll(ctx):
