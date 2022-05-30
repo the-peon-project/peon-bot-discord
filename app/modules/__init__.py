@@ -9,11 +9,11 @@ settings = json.load(open(f"{project_path}/settings.json", 'r'))
 # Container prefix
 prefix = "peon.warcamp."
 
-def getWarParties():
+def getPeonOrchestrators():
     try:
-        logging.debug("Loading warcamps file") 
-        return json.load(open(f"{project_path}/warparties.json", 'r'))
+        logging.debug("Loading orchestrators file") 
+        return json.load(open(f"{project_path}/peon.orchestrators.json", 'r'))
     except:
-        logging.debug("No warcamp file found. Creating one")
-        open(f"{project_path}/warparties.json", 'a').close()
+        logging.debug("No warorchestrators file found. Creating one")
+        open(f"{project_path}/peon.orchestrators.json", 'a').close()
         return "EMPTY"
