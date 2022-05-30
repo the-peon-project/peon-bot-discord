@@ -6,7 +6,7 @@ from discord.ext import commands
 from dotenv import load_dotenv
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, getWarParties
+from modules import project_path, getPeonOrchestrators
 
 
 load_dotenv()
@@ -29,16 +29,37 @@ async def poke(ctx):
 
 @bot.command(name='getall')
 async def getAll(ctx):
-    warparties = getWarParties()
-    if warparties != "EMPTY":
+    peon_orchestrators = getPeonOrchestrators()
+    if peon_orchestrators != "EMPTY":
         response=f"*\'{quote('hello')}\'*\n"
-        for warparty in warparties:
-            response+=f"**{warparty['name']}**\n```c"
-            for server in getServers(warparty['url'],warparty['key'])["servers"]:
+        for orchestrator in peon_orchestrators:
+            response+=f"**{orchestrator['name']}**\n```c"
+            for server in getServers(orchestrator['url'],orchestrator['key'])["servers"]:
                 response += f"\n{server['game_uid']}.{server['servername']}\t[{server['container_state']}]"
             response += "\n```"
     else:
         response = errorMessage('none','register')
+    await ctx.send(response)
+
+@bot.command(name='get')
+async def get(ctx, *args):
+    peon_orchestrators = getPeonOrchestrators()
+    if len(args) != 2:
+        response = errorMessage('parameterCount','get')
+    elif peon_orchestrators == "EMPTY":
+        response = errorMessage('none','register')
+    elif not ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']]):
+        response = errorMessage('orc.dne', 'get')
+    else:
+        orchestrator = ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']])[0]
+        response=f"*\'{quote('ok')}\'*\n"
+        apiresponse = getServer(orchestrator['url'],orchestrator['key'],args[1])
+        if "error" in apiresponse:
+            response = errorMessage('srv.dne', 'getall')
+        else:
+            response += f"**{args[1]}**\n"
+            data = apiresponse['server']
+            response += f"```yaml\nGameUID        : {data['game_uid']}\nServerName     : {data['servername']}\nContainerState : {data['container_state']}\nServerState    : {data['server_state']}\nDescription    : {data['description']}\n```"
     await ctx.send(response)
 
 @bot.command(name='register')
