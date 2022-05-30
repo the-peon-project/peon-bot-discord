@@ -1,8 +1,9 @@
 import json
 import random
+from . import project_path
 
-responses = json.load(open("/root/peon-bot-discord/app/documents/quotes.json"))
-messages = json.load(open("/root/peon-bot-discord/app/documents/messages.json"))
+responses = json.load(open(f"{project_path}/documents/quotes.json"))
+messages = json.load(open(f"{project_path}/documents/messages.json"))
 
 def quote(group="hello"):
     return random.choice(responses[group])
