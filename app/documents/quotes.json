@@ -1,5 +1,5 @@
 {
-    "respond": [
+    "hello": [
         "Ready to work",
         "Yes?",
         "What you want?",
@@ -8,7 +8,7 @@
         "More work!?!",
         "Who you want me kill?"
     ],
-    "affirmative": [
+    "ok": [
         "Off I go then...",
         "I can do that.",
         "Be happy to.",
@@ -16,18 +16,16 @@
         "Okie dokie",
         "My life for the Horde!"
     ],
-    "deny": [
+    "nok": [
         "Can't build there...",
         "Me busy. Leave me alone!!",
         "No time for play.",
         "Me not that kind of orc!",
         "Why you poking me again?",
-        "Poke, poke, poke - is that all you do?"
-
-    ],
-    "error": [
+        "Poke, poke, poke - is that all you do?",
         "Help!!!",
         "Lok'tar!",
         "Swobu!"
+
     ]
 }
