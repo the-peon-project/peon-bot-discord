@@ -2,11 +2,16 @@
     "type": {
         "undefined": "Error is undefined.",
         "parameterCount": "Invalid parameter count. Explain more clearly to the Orc.",
-        "none": "You do not command any war parties. You should conquer a war party!"
+        "none": "You do not command any war parties. You should conquer a war party!",
+        "orc.dne": "The requested war party does not exist.",
+        "srv.dne": "The requested war camp does not exist. Confirm your warcamps"
     },
     "sample": {
         "undefined": "n/a",
-        "register": "!register uniqueName orchestratorUrl:port apiKey"
+        "get": "!get orchestratorname gameuid.servername",
+        "getall": "!getall",
+        "register": "!register uniqueName orchestratorUrl:port apiKey",
+        "start": "!start orchestratorname gameuid.servername"
     },
     "symbol": {
         "poke": ":point_up:",
