@@ -1,7 +1,8 @@
 {
     "type": {
         "undefined": "Error is undefined.",
-        "parameterCount": "Invalid parameter count. Explain more clearly to the Orc."
+        "parameterCount": "Invalid parameter count. Explain more clearly to the Orc.",
+        "none": "You do not command any war parties. You should conquer a war party!"
     },
     "sample": {
         "undefined": "n/a",
