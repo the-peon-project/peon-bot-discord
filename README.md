@@ -40,6 +40,8 @@ Discord bot is built as a docker image for easy deployment.
 
 [Guide](https://realpython.com/how-to-make-a-discord-bot-python/)
 
+[Discord Application](https://discord.com/developers/applications)
+
 ## Support the Project
 
 PEON is an open-source project that I am working on in my spare time (for fun).
