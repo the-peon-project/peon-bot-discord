@@ -20,8 +20,6 @@ The [github](https://github.com/nox-noctua-consulting/peon-bot-discord/) repo fo
 
 > **EARLY DEVELOPMENT**
 
-
-
 ## Version Info
 
 Check [changelog](https://github.com/nox-noctua-consulting/peon-bot-discord/blob/master/changelog.md) for more information
@@ -39,6 +37,8 @@ Discord bot is built as a docker image for easy deployment.
 - [ ] peon.orc can be managed by bot
 
 #### Notes
+
+[Guide](https://realpython.com/how-to-make-a-discord-bot-python/)
 
 ## Support the Project
 
