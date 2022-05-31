@@ -1,5 +1,9 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.1.1-dev
+
+- Logging - Added devMode switch
+
 ## 0.1.0-dev
 
 - First version of bot
