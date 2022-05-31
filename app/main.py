@@ -29,6 +29,7 @@ async def poke(ctx):
 
 @bot.command(name='getall')
 async def getAll(ctx):
+    logging.debug(f"Servers & hosts \'get\' requested")
     peon_orchestrators = getPeonOrchestrators()
     if peon_orchestrators != "EMPTY":
         response = f"*\'{quote('hello')}\'*\n"
@@ -44,27 +45,31 @@ async def getAll(ctx):
 
 @bot.command(name='get')
 async def get(ctx, *args):
+    logging.debug(f"Server get requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('get', args))
 
 
 @bot.command(name='start')
 async def start(ctx, *args):
+    logging.info(f"Server start requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('start', args))
 
 
 @bot.command(name='stop')
 async def stop(ctx, *args):
+    logging.info(f"Server stop requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('stop', args))
 
 
 @bot.command(name='restart')
 async def restart(ctx, *args):
+    logging.info(f"Server restart requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('restart', args))
 
 
 @bot.command(name='register')
 async def register(ctx, *args):
-    print("Server registration requested.")
+    logging.info("Server registration requested.")
     if len(args) != 3:
         await ctx.send(errorMessage('parameterCount', 'register'))
 
