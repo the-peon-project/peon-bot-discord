@@ -1,3 +1,4 @@
 pipenv
 discord.py
 python-dotenv
+requests
