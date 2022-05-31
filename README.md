@@ -50,8 +50,6 @@ Discord bot is built as a docker image for easy deployment.
 
 ### Usage
 
-
-**PEON INFORMATION**
 > :point_up:  ``!poke``  to check if there is an available peon to do some work.\
 > :european_castle:  ``!getall``  to list all warcamps in the warparty.\
 > :tent:  ``!get orchestrator.uid game_server_uid``  to show the status of a warcamp.\
@@ -63,7 +61,9 @@ Discord bot is built as a docker image for easy deployment.
 > :wrench:  ``!register orchestrator.uid orchestrator.url orchestrator.apikey``  to register a warparty.\
 > :hammer:  ``!unregister orchestrator.uid``  to remove a registered warparty.\
 > :grey_question:  ``!usage``  to print this help menu.\
+*Warparty - An vm/pc/server running the orchestrator software as well as hosting game servers*
 *Warcamp - A game server*
+
 ## Support the Project
 
 PEON is an open-source project that I am working on in my spare time (for fun).
