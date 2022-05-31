@@ -6,7 +6,7 @@ import logging
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, devMode, getPeonOrchestrators
+from modules import project_path, devMode
 
 bot = commands.Bot(command_prefix='!')
 
@@ -40,24 +40,19 @@ async def getAll(ctx):
 
 @bot.command(name='get')
 async def get(ctx, *args):
-    peon_orchestrators = getPeonOrchestrators()
-    if len(args) != 2:
-        response = errorMessage('parameterCount','get')
-    elif peon_orchestrators == "EMPTY":
-        response = errorMessage('none','register')
-    elif not ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']]):
-        response = errorMessage('orc.dne', 'get')
-    else:
-        orchestrator = ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']])[0]
-        response=f"*\'{quote('ok')}\'*\n"
-        apiresponse = getServer(orchestrator['url'],orchestrator['key'],args[1])
-        if "error" in apiresponse:
-            response = errorMessage('srv.dne', 'getall')
-        else:
-            response += f"**{args[1]}**\n"
-            data = apiresponse['server']
-            response += f"```yaml\nGameUID        : {data['game_uid']}\nServerName     : {data['servername']}\nContainerState : {data['container_state']}\nServerState    : {data['server_state']}\nDescription    : {data['description']}\n```"
-    await ctx.send(response)
+    await ctx.send(serverActions('get',args))
+
+@bot.command(name='start')
+async def start(ctx, *args):
+    await ctx.send(serverActions('start',args))
+
+@bot.command(name='stop')
+async def stop(ctx, *args):
+    await ctx.send(serverActions('stop',args))
+
+@bot.command(name='restart')
+async def restart(ctx, *args):
+    await ctx.send(serverActions('restart',args))
 
 @bot.command(name='register')
 async def register(ctx, *args):
