@@ -1,11 +1,13 @@
 # bot.py
 import os
 import re
+from dotenv import load_dotenv
 import logging
+import discord
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, getPeonOrchestrators
+from modules import project_path, devMode, getPeonOrchestrators
 
 bot = commands.Bot(command_prefix='!')
 
@@ -16,10 +18,11 @@ async def on_ready():
         if re.search('text', str(channel.category), re.IGNORECASE):
             if re.search('bot', str(channel.name), re.IGNORECASE):
                 await channel.send(f" has connected to the server.\n *Type ``!usage`` for furthur information*")
-    print(f'[{bot.user.name}] has connected to Discord!')
+    logging.info(f'[{bot.user.name}] has connected to Discord!')
 
 @bot.command(name='poke')
-async def poke(ctx):
+async def poke(ctx, user: discord.User):
+    logging.debug(f'Poke requested')
     await ctx.send(f"*{quote('hello')}*")
 
 @bot.command(name='getall')
@@ -70,6 +73,12 @@ async def usage(ctx):
 
 ####### MAIN
 if __name__ == "__main__":
-    TOKEN = os.environ['DISCORD_TOKEN']
+    if devMode:
+        load_dotenv(f"{project_path}/dev/.env")
+        TOKEN = os.getenv('DISCORD_TOKEN')
+    else:
+        TOKEN = os.environ['DISCORD_TOKEN']
     usageText = (open(f"{project_path}/documents/help.md", "r")).read()
-    bot.run(TOKEN)
+    logging.basicConfig(filename='/var/log/peon/bot.discord.log', filemode='a', format='%(asctime)s %(thread)d [%(levelname)s] - %(message)s', level=logging.DEBUG)
+    logging.debug(bot.run(TOKEN))
+    
