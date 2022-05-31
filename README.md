@@ -51,7 +51,7 @@ Discord bot is built as a docker image for easy deployment.
 ### Usage
 
 > :point_up:  ``!poke``  to check if there is an available peon to do some work.\
-> :european_castle:  ``!getall``  to list all warcamps in the warparty.\
+> :european_castle:  ``!getall``  to list all warcamps in their warparties.\
 > :tent:  ``!get orchestrator.uid game_server_uid``  to show the status of a warcamp.\
 > :white_check_mark:  ``!start orchestrator.uid game_server_uid``  to start a warcamp.\
 > :checkered_flag:  ``!stop orchestrator.uid game_server_uid``  to stop a warcamp.\
