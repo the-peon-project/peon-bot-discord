@@ -1,5 +1,9 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.0-dev
+
+- Orc - control start/stop/restart
+
 ## 0.1.1-dev
 
 - Logging - Added devMode switch
