@@ -61,7 +61,7 @@ Discord bot is built as a docker image for easy deployment.
 > :wrench:  ``!register orchestrator.uid orchestrator.url orchestrator.apikey``  to register a warparty.\
 > :hammer:  ``!unregister orchestrator.uid``  to remove a registered warparty.\
 > :grey_question:  ``!usage``  to print this help menu.\
-*Warparty - An vm/pc/server running the orchestrator software as well as hosting game servers*
+*Warparty - An vm/pc/server running the orchestrator software as well as hosting game servers*\
 *Warcamp - A game server*
 
 ## Support the Project
