@@ -11,5 +11,5 @@ def quote(group="hello"):
 def errorMessage(type="undefined",command="undefined"): # Add error header
     errorString = f"*\'{quote('nok')}\'*\n"
     errorString += f"*{messages['type'][type]}*\n" # Add error type
-    errorString += f"```c\n{messages['sample'][command]}\n```" # Add help sample
+    errorString += f"```yaml\n{messages['sample'][command]}\n```" # Add help sample
     return errorString
