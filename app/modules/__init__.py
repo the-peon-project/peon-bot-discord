@@ -17,3 +17,9 @@ def getPeonOrchestrators():
         logging.debug("No warorchestrators file found. Creating one")
         open(f"{project_path}/peon.orchestrators.json", 'a').close()
         return "EMPTY"
+
+def devMode():
+    if os.path.isdir(f"{project_path}/dev"):
+        return True
+    else:
+        return False
