@@ -3,16 +3,11 @@ import os
 import re
 import logging
 from discord.ext import commands
-from dotenv import load_dotenv
 from modules.peon_orc_api import *
 from modules.messaging import *
 from modules import project_path, getPeonOrchestrators
 
-
-load_dotenv()
-TOKEN = os.getenv('DISCORD_TOKEN')
 bot = commands.Bot(command_prefix='!')
-usageText = (open(f"{project_path}/documents/help.md", "r")).read()
 
 @bot.event
 async def on_ready():
@@ -73,5 +68,8 @@ async def register(ctx, *args):
 async def usage(ctx):
     await ctx.send(usageText)
 
-####### MAIN 
-bot.run(TOKEN)
+####### MAIN
+if __name__ == "__main__":
+    TOKEN = os.environ['DISCORD_TOKEN']
+    usageText = (open(f"{project_path}/documents/help.md", "r")).read()
+    bot.run(TOKEN)
