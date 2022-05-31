@@ -11,7 +11,9 @@
         "get": "!get orchestratorname gameuid.servername",
         "getall": "!getall",
         "register": "!register uniqueName orchestratorUrl:port apiKey",
-        "start": "!start orchestratorname gameuid.servername"
+        "start": "!start orchestratorname gameuid.servername",
+        "stop": "!stop orchestratorname gameuid.servername",
+        "restart": "!restart orchestratorname gameuid.servername"
     },
     "symbol": {
         "poke": ":point_up:",
