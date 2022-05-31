@@ -3,7 +3,6 @@ import os
 import re
 from dotenv import load_dotenv
 import logging
-import discord
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
@@ -21,7 +20,7 @@ async def on_ready():
     logging.info(f'[{bot.user.name}] has connected to Discord!')
 
 @bot.command(name='poke')
-async def poke(ctx, user: discord.User):
+async def poke(ctx):
     logging.debug(f'Poke requested')
     await ctx.send(f"*{quote('hello')}*")
 
