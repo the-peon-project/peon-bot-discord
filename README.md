@@ -52,17 +52,17 @@ Discord bot is built as a docker image for easy deployment.
 
 
 **PEON INFORMATION**
-> :point_up:  ``!poke      ``  to check if there is an available peon to do some work.\
-> :european_castle:  ``!getall    ``  to list all warcamps in the warparty.\
-> :tent:  ``!get       ``  to show the status of a warcamp.\
-> :white_check_mark:  ``!start     ``  to start a warcamp.\
-> :checkered_flag:  ``!stop      ``  to stop a warcamp.\
-> :recycle:  ``!restart   ``  to restart a warcamp.\
-> :calendar:  ``!schedule  ``  to schedule a date and time when a warcamp must start/stop.\
-> :clock3:  ``!extend    ``  to keep a warcamp alive for [x] more hours.\
-> :wrench:  ``!register  ``  to register a warparty.\
-> :hammer:  ``!unregister``  to remove a registered warparty.\
-> :grey_question:  ``!usage     ``  to print this help menu.\
+> :point_up:  ``!poke``  to check if there is an available peon to do some work.\
+> :european_castle:  ``!getall``  to list all warcamps in the warparty.\
+> :tent:  ``!get orchestrator.uid game_server_uid``  to show the status of a warcamp.\
+> :white_check_mark:  ``!start orchestrator.uid game_server_uid``  to start a warcamp.\
+> :checkered_flag:  ``!stop orchestrator.uid game_server_uid``  to stop a warcamp.\
+> :recycle:  ``!restart orchestrator.uid game_server_uid``  to restart a warcamp.\
+> :calendar:  ``!schedule orchestrator.uid game_server_uid CCYY/MM/DD-HH:MM:SS``  to schedule a date and time when a warcamp must start/stop.\
+> :clock3:  ``!extend orchestrator.uid game_server_uid [x]m/h/d``  to keep a warcamp alive for [x] more hours.\
+> :wrench:  ``!register orchestrator.uid orchestrator.url orchestrator.apikey``  to register a warparty.\
+> :hammer:  ``!unregister orchestrator.uid``  to remove a registered warparty.\
+> :grey_question:  ``!usage``  to print this help menu.\
 *Warcamp - A game server*
 ## Support the Project
 
