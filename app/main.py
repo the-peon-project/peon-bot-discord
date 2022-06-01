@@ -34,9 +34,9 @@ async def getAll(ctx):
     if peon_orchestrators != "EMPTY":
         response = f"*\'{quote('hello')}\'*\n"
         for orchestrator in peon_orchestrators:
-            response += f"**{orchestrator['name']}**\n```c"
+            response += f"**{orchestrator['name']}**\n```yaml"
             for server in getServers(orchestrator['url'], orchestrator['key'])["servers"]:
-                response += f"\n{server['game_uid']}.{server['servername']}\t[{server['container_state']}]"
+                response += f"\n{server['game_uid']}.{server['servername']} : [{server['container_state']}]"
             response += "\n```"
     else:
         response = errorMessage('none', 'register')
