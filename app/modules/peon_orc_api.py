@@ -4,6 +4,16 @@ import requests
 from modules import getPeonOrchestrators
 from modules.messaging import *
 
+
+def getServersAll(peon_orchestrators):
+    response = f"*\'{quote('hello')}\'*\n"
+    for orchestrator in peon_orchestrators:
+        response += f"**{orchestrator['name']}**\n```yaml"
+        for server in getServers(orchestrator['url'], orchestrator['key'])["servers"]:
+            response += f"\n{server['game_uid']}.{server['servername']} : [{server['container_state']}]"
+        response += "\n```"
+    return response
+
 # Services Get users in a certain group
 def getServers(url, api_key):
     logging.debug('[getAllServers]')

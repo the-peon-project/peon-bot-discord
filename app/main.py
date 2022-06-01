@@ -32,12 +32,7 @@ async def getAll(ctx):
     logging.debug(f"Servers & hosts \'get\' requested")
     peon_orchestrators = getPeonOrchestrators()
     if peon_orchestrators != "EMPTY":
-        response = f"*\'{quote('hello')}\'*\n"
-        for orchestrator in peon_orchestrators:
-            response += f"**{orchestrator['name']}**\n```yaml"
-            for server in getServers(orchestrator['url'], orchestrator['key'])["servers"]:
-                response += f"\n{server['game_uid']}.{server['servername']} : [{server['container_state']}]"
-            response += "\n```"
+        response = getServersAll(peon_orchestrators)
     else:
         response = errorMessage('none', 'register')
     await ctx.send(response)
