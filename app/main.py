@@ -78,6 +78,12 @@ async def register(ctx, *args):
 async def usage(ctx):
     await ctx.send(usageText)
 
+@bot.command(name='clear')
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount: int):
+    await ctx.channel.purge(limit=amount + 1)
+    await ctx.send(f"{amount} message(s) got deleted")
+
 # MAIN
 if __name__ == "__main__":
     if devMode:
