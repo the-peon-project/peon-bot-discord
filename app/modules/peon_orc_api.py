@@ -8,10 +8,10 @@ from modules.messaging import *
 def getServersAll(peon_orchestrators):
     response = f"*\'{quote('hello')}\'*\n"
     for orchestrator in peon_orchestrators:
-        response += f"**{orchestrator['name']}**\n```yaml"
+        response += f"{orchestrator['name']}\n```yaml"
         for server in getServers(orchestrator['url'], orchestrator['key'])["servers"]:
             server_uid = f"{server['game_uid']}.{server['servername']}"
-            response += "\n{0:<30} : {1:<20}".format(server_uid,server['container_state'])
+            response += "\n{0:<30} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
     return response
 
@@ -40,16 +40,23 @@ def serverActions(action,args):
         response = errorMessage('orc.dne', action)
     else:
         orchestrator = ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']])[0]
-        response=f"*\'{quote('ok')}\'*\n"
         apiresponse = serverAction(orchestrator['url'],orchestrator['key'],args[1],'get')
         if "error" in apiresponse:
             response = errorMessage('srv.dne', 'get')
         else:
-            if action != 'get':
-                apiresponse = serverAction(orchestrator['url'],orchestrator['key'],args[1],action)
-            response += f"**{args[0]} {args[1]}**\n"
-            data = apiresponse['server']
-            response += f"```yaml\nGameUID        : {data['game_uid']}\nServerName     : {data['servername']}\nContainerState : {data['container_state']}\nServerState    : {data['server_state']}\nDescription    : {data['description']}\n```"
+            response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{args[1]}`` in ``{args[0]}``.*"
+            if action == 'get':
+                data = apiresponse['server']
+                response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n---\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
+                try:
+                    config_dict = json.loads(data['server_config'])
+                    for key,value in config_dict.items():
+                        response += "{0:<25} : {1}\n".format(key,value)
+                    response += "```"
+                except:
+                    response += f"{data['server_config']}\n```"
+            else:
+                serverAction(orchestrator['url'],orchestrator['key'],args[1],action)
     return response
 
 ######## MAIN - FOR TEST PURPOSES
