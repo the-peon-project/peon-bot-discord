@@ -11,7 +11,7 @@ def getServersAll(peon_orchestrators):
         response += f"{orchestrator['name']}\n```yaml"
         for server in getServers(orchestrator['url'], orchestrator['key'])["servers"]:
             server_uid = f"{server['game_uid']}.{server['servername']}"
-            response += "\n{0:<30} : {1}".format(server_uid,server['container_state'])
+            response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
     return response
 
