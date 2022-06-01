@@ -36,7 +36,7 @@ Discord bot is built as a docker image for easy deployment.
 
 - [x] peon.orc servers can be managed by bot
 
-### *sprint 0.2.0*
+#### *sprint 0.2.0*
 
 - [ ] peon.orc - servers can be created from discord
 
