@@ -1,5 +1,10 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.2-dev
+
+- Text - Reformatted info in message feed
+- Server_Config - Allowed for json formated content
+
 ## 0.2.1-dev
 
 - Discord - Added message cleaner ``clear [int]``
