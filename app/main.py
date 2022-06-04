@@ -6,7 +6,7 @@ import logging
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, devMode
+from modules import project_path, devMode, usageText
 
 bot = commands.Bot(command_prefix='!')
 
@@ -86,7 +86,6 @@ if __name__ == "__main__":
         TOKEN = os.getenv('DISCORD_TOKEN')
     else:
         TOKEN = os.environ['DISCORD_TOKEN']
-    usageText = (open(f"{project_path}/documents/help.md", "r")).read()
     logging.basicConfig(filename='/var/log/peon/bot.discord.log', filemode='a',
                         format='%(asctime)s %(thread)d [%(levelname)s] - %(message)s', level=logging.DEBUG)
     logging.debug(bot.run(TOKEN))
