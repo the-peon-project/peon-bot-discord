@@ -1,7 +1,9 @@
 # IMPORT
+from datetime import datetime
+import pytz
 import logging
 import requests
-from modules import getPeonOrchestrators
+from modules import getPeonOrchestrators, settings
 from modules.messaging import *
 
 
@@ -47,7 +49,15 @@ def serverActions(action,args):
             response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{args[1]}`` in ``{args[0]}``.*"
             if action == 'get':
                 data = apiresponse['server']
-                response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n---\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
+                response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
+                if data["time"] != None:
+                    today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
+                    stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
+                    if str(today.date()) == str(stoptime.date()):
+                        response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z"))
+                    else:
+                        response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z [%x]"))
+                response += "---\n"
                 try:
                     config_dict = json.loads(data['server_config'])
                     for key,value in config_dict.items():
