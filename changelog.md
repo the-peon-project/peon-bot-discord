@@ -1,5 +1,9 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.5-dev
+
+- Bot - Added aliases for commands
+
 ## 0.2.2-dev
 
 - Text - Reformatted info in message feed
