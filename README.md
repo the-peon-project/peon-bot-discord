@@ -38,7 +38,7 @@ Discord bot is built as a docker image for easy deployment.
 
 #### *sprint 0.2.0*
 
-- [ ] peon.orc - servers can be created from discord
+- [ ] peon.bot.discord bot is re-written for ``slash`` commands (see ``interactions.py``)
 
 ### Notes
 
@@ -47,6 +47,10 @@ Discord bot is built as a docker image for easy deployment.
 [Discord Application](https://discord.com/developers/applications)
 
 [Discord.py](https://discordpy.readthedocs.io/en/stable/ext/commands/api.html#bots)
+
+#### Improved bots
+
+[interactions.py](https://discord-interactions.readthedocs.io/en/latest/quickstart.html)
 
 ### Usage
 
