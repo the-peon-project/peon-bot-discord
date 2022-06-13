@@ -6,10 +6,9 @@ import logging
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, devMode, usageText
+from modules import project_path, devMode, usageText, settings
 
 bot = commands.Bot(command_prefix='!')
-
 
 @bot.event
 async def on_ready():
@@ -27,7 +26,7 @@ async def poke(ctx):
     await ctx.send(f"*{quote('hello')}*")
 
 
-@bot.command(name='getall')
+@bot.command(name='getall',aliases=settings["aliases"]["getall"])
 async def getAll(ctx):
     logging.debug(f"Servers & hosts \'get\' requested")
     peon_orchestrators = getPeonOrchestrators()
@@ -38,42 +37,42 @@ async def getAll(ctx):
     await ctx.send(response)
 
 
-@bot.command(name='get')
+@bot.command(name='get',aliases=settings["aliases"]["get"])
 async def get(ctx, *args):
     logging.debug(f"Server get requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('get', args))
 
 
-@bot.command(name='start')
+@bot.command(name='start',aliases=settings["aliases"]["start"])
 async def start(ctx, *args):
     logging.info(f"Server start requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('start', args))
 
 
-@bot.command(name='stop')
+@bot.command(name='stop',aliases=settings["aliases"]["stop"])
 async def stop(ctx, *args):
     logging.info(f"Server stop requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('stop', args))
 
 
-@bot.command(name='restart')
+@bot.command(name='restart',aliases=settings["aliases"]["restart"])
 async def restart(ctx, *args):
     logging.info(f"Server restart requested - {args[0]} {args[1]}")
     await ctx.send(serverActions('restart', args))
 
 
-@bot.command(name='register')
+@bot.command(name='register',aliases=settings["aliases"]["register"])
 async def register(ctx, *args):
     logging.info("Server registration requested.")
     if len(args) != 3:
         await ctx.send(errorMessage('parameterCount', 'register'))
 
 
-@bot.command(name='usage')
+@bot.command(name='usage',aliases=settings["aliases"]["usage"])
 async def usage(ctx):
     await ctx.send(usageText)
 
-@bot.command(name='clear')
+@bot.command(name='clear',aliases=settings["aliases"]["clear"])
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int):
     await ctx.channel.purge(limit=amount + 1)
