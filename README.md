@@ -14,7 +14,7 @@ If run on a public/paid cloud, it is architected to try to minimise costs (easy 
 
 ### Peon Bot Discord (peon.bot.discord)
 
-The [github](https://github.com/nox-noctua-consulting/peon-bot-discord/) repo for developing the peon server orchestrator.
+The [github](https://github.com/nox-noctua-consulting/peon-bot-discord/) repo for developing the peon bot for discord.
 
 ## State
 
