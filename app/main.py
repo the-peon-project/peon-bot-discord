@@ -39,25 +39,25 @@ async def getAll(ctx):
 
 @bot.command(name='get',aliases=settings["aliases"]["get"])
 async def get(ctx, *args):
-    logging.debug(f"Server get requested - {args[0]} {args[1]}")
+    logging.debug(f"Server get requested - {args} ")
     await ctx.send(serverActions('get', args))
 
 
 @bot.command(name='start',aliases=settings["aliases"]["start"])
 async def start(ctx, *args):
-    logging.info(f"Server start requested - {args[0]} {args[1]}")
+    logging.info(f"Server start requested - {args} ")
     await ctx.send(serverActions('start', args))
 
 
 @bot.command(name='stop',aliases=settings["aliases"]["stop"])
 async def stop(ctx, *args):
-    logging.info(f"Server stop requested - {args[0]} {args[1]}")
+    logging.info(f"Server stop requested - {args} ")
     await ctx.send(serverActions('stop', args))
 
 
 @bot.command(name='restart',aliases=settings["aliases"]["restart"])
 async def restart(ctx, *args):
-    logging.info(f"Server restart requested - {args[0]} {args[1]}")
+    logging.info(f"Server restart requested - {args} ")
     await ctx.send(serverActions('restart', args))
 
 
