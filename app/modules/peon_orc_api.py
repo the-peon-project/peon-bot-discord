@@ -51,36 +51,36 @@ def lookForRegexInArgs(regex,args):
     except:
         return None
 
-def getParametersFromArgs(args):
-    if len(args) == 0:
-        return {"error" : "No arguments supplied"}
-    # Interval
+def serverActions(action,args):
+    if len(args) == 0: return errorMessage('parameterCount',action)
+    # STEP 1: Check that there are some registered orchestrators
+    peon_orchestrators = getPeonOrchestrators()
+    if peon_orchestrators == "EMPTY": return errorMessage('orc.none',action)
+    #STEP 2: Get argument informarion
     arg_datetime = lookForRegexInArgs("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
     arg_time = lookForRegexInArgs("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_time: args.remove(arg_time)
     arg_interval = lookForRegexInArgs("^\d+\D$",args)
     if arg_interval: args.remove(arg_interval)
-
-
-def serverActions(action,args):
-    peon_orchestrators = getPeonOrchestrators()
-    # STEP 1: Check that there are some registered orchestrators
-    if peon_orchestrators == "EMPTY":
-        return errorMessage('orc.none',action)
-    if len(peon_orchestrators) == 1:
-            arg_orchestrator = peon_orchestrators[0]["name"]
-        
-    # STEP 2: Get list of servers on orchestrators
-    ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite)
+    if len(args) < 1: return errorMessage('parameterCount',action)
+    if len(peon_orchestrators) == 1: arg_orchestrator = peon_orchestrators[0]["name"]
+    # STEP 3: Get list of servers on orchestrators
+    ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
     server_list = []
     server = {}
     for orchestrator in peon_orchestrators:
-        servers = getServers(orchestrator['url'], orchestrator['key'])['servers']
-        for server in servers:
-            server['orchestrator'] = orchestrator['name']
-        server_list.extend(servers)
-    return ('Bot is in DEV mode')
+        try:
+            servers = getServers(orchestrator['url'], orchestrator['key'])['servers']
+            for server in servers:
+                server['orchestrator'] = orchestrator['name']
+            server_list.extend(servers)
+        except:
+            logging.warn(f"Host {orchestrator} is unavailable.")
+    if len(server_list) == 0: return errorMessage('orc.notavailable',action)
+    
+    # Catch all
+    return ('Me not sure what happened. The maker didn\' prepare me for this.')
 
 
     '''if not ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']]):
