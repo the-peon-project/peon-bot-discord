@@ -1,5 +1,10 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.8-dev
+
+- Messaging - Reworked error messages
+- Bot - BugFix: Scheduling past event times.
+
 ## 0.2.7-dev
 
 - Bot - Added shutdown scheduler
