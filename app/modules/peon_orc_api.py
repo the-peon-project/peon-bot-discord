@@ -133,19 +133,18 @@ def serverActions(action,args):
                 date_string = (datetime.today().strftime('%Y-%m-%d'))
                 timestring = re.match("^(\d{2})[:h](\d{2})$",arg_time)
                 timestring = f"{date_string} {timestring[1]}:{timestring[2]}:00"
-                print (timestring)
                 epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
                 timer = {"epoch_time" : f"{epoch}"}
-                response += f" Warcamp will be stopped at {timestring}"
+                response += f"\n\tWarcamp will be stopped at {timestring}"
             elif arg_datetime:
                 timestring = re.match("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
                 timestring = (f"{timestring[1]}-{timestring[2]}-{timestring[3]} {timestring[4]}:{timestring[5]}:00")
                 epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
                 timer = {"epoch_time" : f"{epoch}"}
-                response += f" Warcamp will be stopped at {timestring}"
+                response += f"\n\tWarcamp will be stopped at {timestring}"
             elif arg_interval:
                 timer = { "interval" : f"{arg_interval}" }
-                response += f" Warcamp will be stopped in {arg_interval}"
+                response += f"\n\tWarcamp will be stopped in {arg_interval}"
             else:
                 timer = {}
             #serverAction(orchestrator['url'],orchestrator['key'],serveruid,action, timer)
