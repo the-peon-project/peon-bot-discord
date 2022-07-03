@@ -1,5 +1,9 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.6-dev
+
+- Bot - Better natural language support
+
 ## 0.2.5-dev
 
 - Bot - Added aliases for commands
