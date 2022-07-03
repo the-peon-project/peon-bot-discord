@@ -135,6 +135,8 @@ def serverActions(action,args):
                 timestring = f"{date_string} {timestring[1]}:{timestring[2]}:00"
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
+                if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
+                    return errorMessage('schedule.past',action)
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_datetime:
@@ -142,6 +144,8 @@ def serverActions(action,args):
                 timestring = (f"{timestring[1]}-{timestring[2]}-{timestring[3]} {timestring[4]}:{timestring[5]}:00")
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
+                if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
+                    return errorMessage('schedule.past',action)
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_interval:
