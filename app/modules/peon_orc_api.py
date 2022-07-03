@@ -96,13 +96,14 @@ def serverActions(action,args):
                 break
     if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
     elif len(matched_server_list) > 1: return errorMessage('parameterCount',action)
+    serveruid=f"{matched_server_list[0]['game_uid']}.{matched_server_list[0]['servername']}"
+    orchestrator = next((orc for orc in peon_orchestrators if orc['name'] == matched_server_list[0]['orchestrator']), None)
     # STEP 5: Trigger action on server
-    serveruid=f"{arg_gameuid}.{arg_servername}"
-    apiresponse = serverAction(arg_orchestrator['url'],arg_orchestrator['key'],serveruid,'get')
+    apiresponse = serverAction(orchestrator['url'],orchestrator['key'],serveruid,'get')
     if "error" in apiresponse:
         response = errorMessage('srv.action.error','get')
     else:
-        response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{serveruid}`` in ``{arg_orchestrator}``.*"
+        response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{serveruid}`` in ``{orchestrator['name']}``.*"
         if action == 'get':
             data = apiresponse['server']
             response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
