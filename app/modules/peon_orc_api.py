@@ -25,6 +25,16 @@ def getServers(url, api_key):
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.get(url, headers=headers)).json()
 
+def lookForRegexInArgs(regex,args):
+    try:
+        for argument in args:
+            match = re.search(regex, argument)
+            if match:
+                logging.debug(f"{match[0]}")
+                return match[0]
+    except:
+        return None
+
 def serverAction(url, api_key, server_uid, action):
     logging.debug(f'[serverAction - {action}]')
     url = f"{url}/api/1.0/server/{action}/{server_uid}"
@@ -32,24 +42,6 @@ def serverAction(url, api_key, server_uid, action):
     if action == "get":
         return (requests.get(url, headers=headers)).json()
     return (requests.put(url, headers=headers)).json()
-
-# Step 1 - Test for datetime (and remove from list)          ^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$    CCYY/MM/DD.HH:MM
-# Step 2 - Test for time (and remove from list)              ^(\d{2})[:h](\d{2})$ HH:MM
-# Step 3 - Test for interval (and remove from list)          ^\d+\D$   
-# Step 3 - Get name
-# 
-# interval match 
-# date match 
-
-def lookForRegexInArgs(regex,args):
-    try:
-        for argument in args:
-            match = re.search(regex, argument)
-            if match:
-                print (f"{match[0]}")
-                return match[0]
-    except:
-        return None
 
 def serverActions(action,args):
     if len(args) == 0: return errorMessage('parameterCount',action)
@@ -64,7 +56,6 @@ def serverActions(action,args):
     arg_interval = lookForRegexInArgs("^\d+\D$",args)
     if arg_interval: args.remove(arg_interval)
     if len(args) < 1: return errorMessage('parameterCount',action)
-    if len(peon_orchestrators) == 1: arg_orchestrator = peon_orchestrators[0]["name"]
     # STEP 3: Get list of servers on orchestrators
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
     server_list = []
@@ -78,42 +69,62 @@ def serverActions(action,args):
         except:
             logging.warn(f"Host {orchestrator} is unavailable.")
     if len(server_list) == 0: return errorMessage('orc.notavailable',action)
-    
-    # Catch all
-    return ('Me not sure what happened. The maker didn\' prepare me for this.')
-
-
-    '''if not ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']]):
-        response = errorMessage('orc.dne', action)
+    # STEP 4: Try and find server with remaining arg/s
+    matched_server_list = []
+    for server in server_list:
+        arg_servername = lookForRegexInArgs(server['servername'],args)
+        if arg_servername:
+            matched_server_list.append(server)
+            break
+    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
+    elif len(matched_server_list) > 1:
+        server_list = matched_server_list
+        matched_server_list = []
+        for server in server_list:
+            arg_gameuid = lookForRegexInArgs(server['game_uid'],args)
+            if arg_gameuid:
+                matched_server_list.append(server)
+                break
+    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
+    elif len(matched_server_list) > 1:
+        server_list = matched_server_list
+        matched_server_list = []
+        for server in server_list:
+            arg_orchestrator = lookForRegexInArgs(server['orchestrator'],args)
+            if arg_orchestrator:
+                matched_server_list.append(server)
+                break
+    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
+    elif len(matched_server_list) > 1: return errorMessage('parameterCount',action)
+    # STEP 5: Trigger action on server
+    serveruid=f"{arg_gameuid}.{arg_servername}"
+    apiresponse = serverAction(arg_orchestrator['url'],arg_orchestrator['key'],serveruid,'get')
+    if "error" in apiresponse:
+        response = errorMessage('srv.action.error','get')
     else:
-        orchestrator = ([orchestrator for orchestrator in peon_orchestrators if args[0] == orchestrator['name']])[0]
-        apiresponse = serverAction(orchestrator['url'],orchestrator['key'],args[1],'get')
-        if "error" in apiresponse:
-            response = errorMessage('srv.dne', 'get')
+        response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{serveruid}`` in ``{arg_orchestrator}``.*"
+        if action == 'get':
+            data = apiresponse['server']
+            response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
+            if data["time"] != None:
+                today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
+                stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
+                if str(today.date()) == str(stoptime.date()):
+                    response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z"))
+                else:
+                    response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z [%x]"))
+            response += "---\n"
+            try:
+                config_dict = json.loads(data['server_config'])
+                for key,value in config_dict.items():
+                    response += "{0:<25} : {1}\n".format(key,value)
+                response += "```"
+            except:
+                response += f"{data['server_config']}\n```"
         else:
-            response =f"*{quote('ok')}\nOrc ``{action.upper()}`` warcamp ``{args[1]}`` in ``{args[0]}``.*"
-            if action == 'get':
-                data = apiresponse['server']
-                response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
-                if data["time"] != None:
-                    today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
-                    stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
-                    if str(today.date()) == str(stoptime.date()):
-                        response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z"))
-                    else:
-                        response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z [%x]"))
-                response += "---\n"
-                try:
-                    config_dict = json.loads(data['server_config'])
-                    for key,value in config_dict.items():
-                        response += "{0:<25} : {1}\n".format(key,value)
-                    response += "```"
-                except:
-                    response += f"{data['server_config']}\n```"
-            else:
-                serverAction(orchestrator['url'],orchestrator['key'],args[1],action)
-    return response
-    '''
+            serverAction(orchestrator['url'],orchestrator['key'],serveruid,action)
+        return response
+    
 
 ######## MAIN - FOR TEST PURPOSES
 
