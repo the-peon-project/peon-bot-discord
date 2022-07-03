@@ -66,10 +66,11 @@ def getParametersFromArgs(args):
 def serverActions(action,args):
     peon_orchestrators = getPeonOrchestrators()
     # STEP 1: Check that there are some registered orchestrators
+    if peon_orchestrators == "EMPTY":
+        return errorMessage('orc.none',action)
     if len(peon_orchestrators) == 1:
             arg_orchestrator = peon_orchestrators[0]["name"]
-    elif len(peon_orchestrators) == 0:
-        return errorMessage('orc.none',action)
+        
     # STEP 2: Get list of servers on orchestrators
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite)
     server_list = []
