@@ -6,7 +6,7 @@ import requests
 from modules import getPeonOrchestrators, settings
 from modules.messaging import *
 import re
-
+import time
 
 def getServersAll(peon_orchestrators):
     response = f"*\'{quote('hello')}\'*\n"
@@ -35,7 +35,7 @@ def lookForRegexInArgs(regex,args):
     except:
         return None
 
-def serverAction(url, api_key, server_uid, action):
+def serverAction(url, api_key, server_uid, action, timer={}):
     logging.debug(f'[serverAction - {action}]')
     url = f"{url}/api/1.0/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
@@ -55,7 +55,7 @@ def serverActions(action,args):
     #STEP 2: Get argument informarion
     arg_datetime = lookForRegexInArgs("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
-    arg_time = lookForRegexInArgs("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
+    arg_time = lookForRegexInArgs("^(\d{2})[:h](\d{2})$",args)
     if arg_time: args.remove(arg_time)
     arg_interval = lookForRegexInArgs("^\d+\D$",args)
     if arg_interval: args.remove(arg_interval)
@@ -109,7 +109,7 @@ def serverActions(action,args):
     if "error" in apiresponse:
         response = errorMessage('srv.action.error','get')
     else:
-        response =f"*{quote('ok')}\nOrc {action} ({game_uid}) warcamp ``{servername}`` in {orchestrator['name'].upper()}.*"
+        response =f"*{quote('ok')}\nOrc {action} ({game_uid}) warcamp ``{servername}`` in {orchestrator['name'].upper()}."
         if action == 'get':
             data = apiresponse['server']
             response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
@@ -129,7 +129,27 @@ def serverActions(action,args):
             except:
                 response += f"{data['server_config']}\n```"
         else:
-            serverAction(orchestrator['url'],orchestrator['key'],serveruid,action)
+            if arg_time:
+                date_string = (datetime.today().strftime('%Y-%m-%d'))
+                timestring = re.match("^(\d{2})[:h](\d{2})$",arg_time)
+                timestring = f"{date_string} {timestring[1]}:{timestring[2]}:00"
+                print (timestring)
+                epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
+                timer = {"epoch_time" : f"{epoch}"}
+                response += f" Warcamp will be stopped at {timestring}"
+            elif arg_datetime:
+                timestring = re.match("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
+                timestring = (f"{timestring[1]}-{timestring[2]}-{timestring[3]} {timestring[4]}:{timestring[5]}:00")
+                epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
+                timer = {"epoch_time" : f"{epoch}"}
+                response += f" Warcamp will be stopped at {timestring}"
+            elif arg_interval:
+                timer = { "interval" : f"{arg_interval}" }
+                response += f" Warcamp will be stopped in {arg_interval}"
+            else:
+                timer = {}
+            #serverAction(orchestrator['url'],orchestrator['key'],serveruid,action, timer)
+        response += ".*"
         return response
     
 
