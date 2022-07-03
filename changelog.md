@@ -1,5 +1,9 @@
 # PEON BOT [DISCORD] - Changelog
 
+## 0.2.7-dev
+
+- Bot - Added shutdown scheduler
+
 ## 0.2.6-dev
 
 - Bot - Better natural language support
