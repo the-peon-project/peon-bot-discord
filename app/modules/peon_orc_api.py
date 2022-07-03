@@ -6,7 +6,6 @@ import requests
 from modules import getPeonOrchestrators, settings
 from modules.messaging import *
 import re
-import time
 
 def getServersAll(peon_orchestrators):
     response = f"*\'{quote('hello')}\'*\n"
@@ -41,7 +40,7 @@ def serverAction(url, api_key, server_uid, action, timer={}):
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     if action == "get":
         return (requests.get(url, headers=headers)).json()
-    return (requests.put(url, headers=headers)).json()
+    return (requests.put(url, headers=headers,json=timer)).json()
 
 def serverActions(action,args):
     if len(args) == 0: return errorMessage('parameterCount',action)
@@ -129,26 +128,26 @@ def serverActions(action,args):
             except:
                 response += f"{data['server_config']}\n```"
         else:
+            timer = {}
             if arg_time:
-                date_string = (datetime.today().strftime('%Y-%m-%d'))
+                date_string = (datetime.now(pytz.timezone(settings["timezone"])).date().strftime('%Y-%m-%d'))
                 timestring = re.match("^(\d{2})[:h](\d{2})$",arg_time)
                 timestring = f"{date_string} {timestring[1]}:{timestring[2]}:00"
-                epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
+                time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
+                epoch = int(time_tz.timestamp())
                 timer = {"epoch_time" : f"{epoch}"}
-                response += f"\n\tWarcamp will shut down at {timestring}"
+                response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_datetime:
                 timestring = re.match("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
                 timestring = (f"{timestring[1]}-{timestring[2]}-{timestring[3]} {timestring[4]}:{timestring[5]}:00")
-                epoch = int(time.mktime(time.strptime(timestring, '%Y-%m-%d %H:%M:%S')))
+                time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
+                epoch = int(time_tz.timestamp())
                 timer = {"epoch_time" : f"{epoch}"}
-                response += f"\n\tWarcamp will shut down at {timestring}"
+                response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_interval:
                 timer = { "interval" : f"{arg_interval}" }
-                response += f"\n\tWarcamp will shut down in {arg_interval}"
-            else:
-                timer = {}
+                response += f"\n\tWarcamp will shut down in {arg_interval}.*"
             serverAction(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
-        response += ".*"
         return response
     
 
