@@ -16,22 +16,22 @@ async def on_ready():
     for channel in channels:
         if re.search('text', str(channel.category), re.IGNORECASE):
             if re.search('bot', str(channel.name), re.IGNORECASE):
-                await channel.send(f" has connected to the server.\n *Type ``!usage`` for furthur information*")
+                await channel.send(" has connected to the server.\n *Type ``!usage`` for furthur information*")
     logging.info(f'[{bot.user.name}] has connected to Discord!')
 
 
 @bot.command(name='poke')
 async def poke(ctx):
-    logging.debug(f'Poke requested')
+    logging.debug('Poke requested')
     await ctx.send(f"*{quote('hello')}*")
 
 
 @bot.command(name='getall',aliases=settings["aliases"]["getall"])
-async def getAll(ctx):
-    logging.debug(f"Servers & hosts \'get\' requested")
+async def get_all(ctx):
+    logging.debug("Servers & hosts \'get\' requested")
     peon_orchestrators = getPeonOrchestrators()
     if peon_orchestrators != "EMPTY":
-        response = getServersAll(peon_orchestrators)
+        response = get_servers_all(peon_orchestrators)
     else:
         response = errorMessage('none', 'register')
     await ctx.send(response)
@@ -40,25 +40,25 @@ async def getAll(ctx):
 @bot.command(name='get',aliases=settings["aliases"]["get"])
 async def get(ctx, *args):
     logging.debug(f"Server get requested - {args} ")
-    await ctx.send(serverActions('get', args))
+    await ctx.send(server_actions('get', args))
 
 
 @bot.command(name='start',aliases=settings["aliases"]["start"])
 async def start(ctx, *args):
     logging.info(f"Server start requested - {args} ")
-    await ctx.send(serverActions('start', args))
+    await ctx.send(server_actions('start', args))
 
 
 @bot.command(name='stop',aliases=settings["aliases"]["stop"])
 async def stop(ctx, *args):
     logging.info(f"Server stop requested - {args} ")
-    await ctx.send(serverActions('stop', args))
+    await ctx.send(server_actions('stop', args))
 
 
 @bot.command(name='restart',aliases=settings["aliases"]["restart"])
 async def restart(ctx, *args):
     logging.info(f"Server restart requested - {args} ")
-    await ctx.send(serverActions('restart', args))
+    await ctx.send(server_actions('restart', args))
 
 
 @bot.command(name='register',aliases=settings["aliases"]["register"])
@@ -80,7 +80,7 @@ async def clear(ctx, amount: int):
 
 # MAIN
 if __name__ == "__main__":
-    if devMode:
+    if devMode():
         load_dotenv(f"{project_path}/dev/.env")
         TOKEN = os.getenv('DISCORD_TOKEN')
     else:
