@@ -33,7 +33,7 @@ async def get_all(ctx):
     if peon_orchestrators != "EMPTY":
         response = get_servers_all(peon_orchestrators)
     else:
-        response = errorMessage('none', 'register')
+        response = error_message('none', 'register')
     await ctx.send(response)
 
 
@@ -65,7 +65,7 @@ async def restart(ctx, *args):
 async def register(ctx, *args):
     logging.info("Server registration requested.")
     if len(args) != 3:
-        await ctx.send(errorMessage('parameterCount', 'register'))
+        await ctx.send(error_message('parameterCount', 'register'))
 
 
 @bot.command(name='usage',aliases=settings["aliases"]["usage"])

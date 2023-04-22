@@ -43,14 +43,14 @@ def server_action(url, api_key, server_uid, action, timer={}):
     return (requests.put(url, headers=headers,json=timer)).json()
 
 def server_actions(action,args):
-    if len(args) == 0: return errorMessage('parameterCount',action)
+    if len(args) == 0: return error_message('parameterCount',action)
     args_old = list(args)
     args = []
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
     peon_orchestrators = getPeonOrchestrators()
-    if peon_orchestrators == "EMPTY": return errorMessage('orc.none',action)
+    if peon_orchestrators == "EMPTY": return error_message('orc.none',action)
     #STEP 2: Get argument informarion
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
@@ -58,7 +58,7 @@ def server_actions(action,args):
     if arg_time: args.remove(arg_time)
     arg_interval = look_for_regex_in_args("^\d+\D$",args)
     if arg_interval: args.remove(arg_interval)
-    if len(args) < 1: return errorMessage('parameterCount',action)
+    if len(args) < 1: return error_message('parameterCount',action)
     # STEP 3: Get list of servers on orchestrators
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
     server_list = []
@@ -71,7 +71,7 @@ def server_actions(action,args):
             server_list.extend(servers)
         except:
             logging.warn(f"Host {orchestrator} is unavailable.")
-    if len(server_list) == 0: return errorMessage('orc.notavailable',action)
+    if len(server_list) == 0: return error_message('orc.notavailable',action)
     # STEP 4: Try and find server with remaining arg/s
     matched_server_list = []
     for server in server_list:
@@ -79,7 +79,7 @@ def server_actions(action,args):
         if arg_servername:
             matched_server_list.append(server)
             break
-    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
+    if len(matched_server_list) == 0: return error_message('srv.dne',action)
     elif len(matched_server_list) > 1:
         server_list = matched_server_list
         matched_server_list = []
@@ -88,7 +88,7 @@ def server_actions(action,args):
             if arg_gameuid:
                 matched_server_list.append(server)
                 break
-    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
+    if len(matched_server_list) == 0: return error_message('srv.dne',action)
     elif len(matched_server_list) > 1:
         server_list = matched_server_list
         matched_server_list = []
@@ -97,8 +97,8 @@ def server_actions(action,args):
             if arg_orchestrator:
                 matched_server_list.append(server)
                 break
-    if len(matched_server_list) == 0: return errorMessage('srv.dne',action)
-    elif len(matched_server_list) > 1: return errorMessage('parameterCount',action)
+    if len(matched_server_list) == 0: return error_message('srv.dne',action)
+    elif len(matched_server_list) > 1: return error_message('parameterCount',action)
     game_uid = matched_server_list[0]['game_uid']
     servername = matched_server_list[0]['servername']
     serveruid=f"{game_uid}.{servername}"
@@ -106,7 +106,7 @@ def server_actions(action,args):
     # STEP 5: Trigger action on server
     apiresponse = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
     if "error" in apiresponse:
-        response = errorMessage('srv.action.error','get')
+        response = error_message('srv.action.error','get')
     else:
         response =f"*{quote('ok')}\nOrc {action} ({game_uid}) warcamp ``{servername}`` in {orchestrator['name'].upper()}."
         if action == 'get':
@@ -136,7 +136,7 @@ def server_actions(action,args):
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
-                    return errorMessage('schedule.past',action)
+                    return error_message('schedule.past',action)
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_datetime:
@@ -145,7 +145,7 @@ def server_actions(action,args):
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
-                    return errorMessage('schedule.past',action)
+                    return error_message('schedule.past',action)
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_interval:
