@@ -1,5 +1,5 @@
 # Base image debian bullseye slim
-FROM python:3.9-slim-bullseye
+FROM python:3.11-slim-bullseye
 # Build information
 LABEL "com.peon.description"="Peon Bot - Discord"
 LABEL "maintainer"="Umlatt <richard@noxnoctua.com>"
