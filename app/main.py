@@ -6,7 +6,7 @@ import logging
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, devMode, usageText, settings
+from modules import project_path, dev_mode, usageText, settings
 
 bot = commands.Bot(command_prefix='!')
 
@@ -29,7 +29,7 @@ async def poke(ctx):
 @bot.command(name='getall',aliases=settings["aliases"]["getall"])
 async def get_all(ctx):
     logging.debug("Servers & hosts \'get\' requested")
-    peon_orchestrators = getPeonOrchestrators()
+    peon_orchestrators = get_peon_orchestrators()
     if peon_orchestrators != "EMPTY":
         response = get_servers_all(peon_orchestrators)
     else:
@@ -80,7 +80,7 @@ async def clear(ctx, amount: int):
 
 # MAIN
 if __name__ == "__main__":
-    if devMode():
+    if dev_mode():
         load_dotenv(f"{project_path}/dev/.env")
         TOKEN = os.getenv('DISCORD_TOKEN')
     else:
