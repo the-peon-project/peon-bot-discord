@@ -20,4 +20,4 @@ COPY ./app /app
 # Move to working directory
 WORKDIR /app
 # Start application
-CMD ["/bin/sh", "-c","python3 main.py >> /var/log/peon/bot.discord.log 2>&1"]
+CMD ["/bin/sh", "-c","python3 main.py"]
