@@ -11,14 +11,14 @@ settings = json.load(open(f"{project_path}/settings.json", 'r'))
 
 usageText = (open(f"{project_path}/config/documents/help.md", "r")).read()
 
-def devMode():
+def dev_mode():
     if os.path.isdir(f"{project_path}/dev"):
         logging.warn("DEV MODE ENABLED")
         return True
     else:
         return False
 
-def getPeonOrchestrators():
+def get_peon_orchestrators():
     try:
         logging.debug("Loading orchestrators file") 
         return json.load(open(f"{project_path}/config/peon.orchestrators.json", 'r'))

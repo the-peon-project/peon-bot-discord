@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 import logging
 import requests
-from modules import getPeonOrchestrators, settings
+from modules import get_peon_orchestrators, settings
 from modules.messaging import *
 import re
 
@@ -49,7 +49,7 @@ def server_actions(action,args):
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    peon_orchestrators = getPeonOrchestrators()
+    peon_orchestrators = get_peon_orchestrators()
     if peon_orchestrators == "EMPTY": return error_message('orc.none',action)
     #STEP 2: Get argument informarion
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
