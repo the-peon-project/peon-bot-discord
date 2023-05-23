@@ -1,14 +1,16 @@
-# bot.py
+#/usr/bin/python3
 import os
 import re
-from dotenv import load_dotenv
 import logging
+import discord
 from discord.ext import commands
 from modules.peon_orc_api import *
 from modules.messaging import *
-from modules import project_path, dev_mode, usageText, settings
+from modules import project_path, usage_text, settings
 
-bot = commands.Bot(command_prefix='!')
+intents = discord.Intents.default()
+intents.message_content = True
+bot = commands.Bot(command_prefix='!',intents=intents)
 
 @bot.event
 async def on_ready():
@@ -29,11 +31,11 @@ async def poke(ctx):
 @bot.command(name='getall',aliases=settings["aliases"]["getall"])
 async def get_all(ctx):
     logging.debug("Servers & hosts \'get\' requested")
-    peon_orchestrators = get_peon_orchestrators()
-    if peon_orchestrators != "EMPTY":
-        response = get_servers_all(peon_orchestrators)
+    if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+        logging.debug(peon_orchestrators)
+        response = get_servers_all(peon_orchestrators['data'])
     else:
-        response = error_message('none', 'register')
+        response = error_message('none', 'register') 
     await ctx.send(response)
 
 
@@ -70,7 +72,7 @@ async def register(ctx, *args):
 
 @bot.command(name='usage',aliases=settings["aliases"]["usage"])
 async def usage(ctx):
-    await ctx.send(usageText)
+    await ctx.send(usage_text)
 
 @bot.command(name='clear',aliases=settings["aliases"]["clear"])
 @commands.has_permissions(manage_messages=True)
@@ -80,11 +82,6 @@ async def clear(ctx, amount: int):
 
 # MAIN
 if __name__ == "__main__":
-    if dev_mode():
-        load_dotenv(f"{project_path}/dev/.env")
-        TOKEN = os.getenv('DISCORD_TOKEN')
-    else:
-        TOKEN = os.environ['DISCORD_TOKEN']
-    logging.basicConfig(filename='/var/log/peon/bot.discord.log', filemode='a',
-                        format='%(asctime)s %(thread)d [%(levelname)s] - %(message)s', level=logging.DEBUG)
+    TOKEN = os.environ['DISCORD_TOKEN']
+    logging.basicConfig(filename='/var/log/peon/bot.discord.log', filemode='a',format='%(asctime)s %(thread)d [%(levelname)s] - %(message)s', level=logging.DEBUG)
     logging.debug(bot.run(TOKEN))
