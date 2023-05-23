@@ -21,35 +21,29 @@ async def on_ready():
                 await channel.send(" has connected to the server.\n *Type ``!usage`` for furthur information*")
     logging.info(f'[{bot.user.name}] has connected to Discord!')
 
-
 @bot.command(name='poke')
 async def poke(ctx):
     logging.debug('Poke requested')
     await ctx.send(f"*{quote('hello')}*")
 
-
 @bot.command(name='getall',aliases=settings["aliases"]["getall"])
 async def get_all(ctx):
     logging.debug("Servers & hosts \'get\' requested")
     if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
-        logging.debug(peon_orchestrators)
         response = get_servers_all(peon_orchestrators['data'])
     else:
         response = error_message('none', 'register') 
     await ctx.send(response)
-
 
 @bot.command(name='get',aliases=settings["aliases"]["get"])
 async def get(ctx, *args):
     logging.debug(f"Server get requested - {args} ")
     await ctx.send(server_actions('get', args))
 
-
 @bot.command(name='start',aliases=settings["aliases"]["start"])
 async def start(ctx, *args):
     logging.info(f"Server start requested - {args} ")
     await ctx.send(server_actions('start', args))
-
 
 @bot.command(name='stop',aliases=settings["aliases"]["stop"])
 async def stop(ctx, *args):
