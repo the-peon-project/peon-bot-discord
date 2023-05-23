@@ -3,7 +3,7 @@ function do_docker_build(){
     cd $dockerfile_path
     if [[ $version ]];
     then
-        sed -i "19s/.*/            ┃                     version: $version                       /" $dockerfile_path/media/banner
+        sed -i "19s/.*/            ┃                     version: $version                       ┃/" $dockerfile_path/media/banner
         docker build --build-arg VERSION="$version" -t $container_tag:$version .
         docker tag $container_tag:$version $container_tag:latest
     else
