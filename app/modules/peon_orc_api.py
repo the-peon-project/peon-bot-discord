@@ -3,7 +3,7 @@ from datetime import datetime
 import pytz
 import logging
 import requests
-from modules import get_peon_orchestrators, settings
+from modules import get_peon_orcs, settings
 from modules.messaging import *
 import re
 
@@ -11,7 +11,7 @@ def get_servers_all(peon_orchestrators):
     response = f"*\'{quote('hello')}\'*\n"
     for orchestrator in peon_orchestrators:
         response += f"{orchestrator['name'].upper()}\n```yaml"
-        for server in get_servers(orchestrator['url'], orchestrator['key'])["servers"]:
+        for server in get_servers(orchestrator['url'], orchestrator['key']):
             server_uid = f"{server['game_uid']}.{server['servername']}"
             response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
@@ -49,7 +49,7 @@ def server_actions(action,args):
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    peon_orchestrators = get_peon_orchestrators()
+    peon_orchestrators = get_peon_orcs()
     if peon_orchestrators == "EMPTY": return error_message('orc.none',action)
     #STEP 2: Get argument informarion
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
