@@ -48,21 +48,25 @@ async def get(ctx, *args):
 
 @bot.command(name='start',aliases=settings["aliases"]["start"])
 async def start(ctx, *args):
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server START requested - {args} ")
     await ctx.send(server_actions('start', args))
 
 @bot.command(name='stop',aliases=settings["aliases"]["stop"])
 async def stop(ctx, *args):
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server STOP requested - {args} ")
     await ctx.send(server_actions('stop', args))
 
 @bot.command(name='restart',aliases=settings["aliases"]["restart"])
 async def restart(ctx, *args):
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server RESTART requested - {args} ")
     await ctx.send(server_actions('restart', args))
 
 @bot.command(name='register',aliases=settings["aliases"]["register"])
 async def register(ctx, *args):
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info("Server REGISTRATION requested.")
     if len(args) != 3:
         await ctx.send(error_message('parameterCount', 'register'))
