@@ -4,7 +4,7 @@ import re
 import logging
 import discord
 from discord.ext import commands
-from modules import usage_text, settings, build_payload
+from modules import usage_text, settings, identify_channel
 from modules.peon_orc_api import *
 from modules.messaging import *
 
@@ -42,7 +42,7 @@ async def get_all(ctx):
 
 @bot.command(name='get',aliases=settings["aliases"]["get"])
 async def get(ctx, *args):
-    args = build_payload(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.debug(f"Server GET requested - {args} ")
     await ctx.send(server_actions('get', args))
 

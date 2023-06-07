@@ -19,3 +19,14 @@ def get_peon_orcs():
         logging.debug("No war orchestrators file found. Creating one")
         open(f"{project_path}/config/peon.orchestrators.json", 'a').close()
         return {"status" : "error", "info" : f"{e}"}
+
+def identify_channel(channel_control,channel_request,args):
+    if channel_request == channel_control:
+        logging.debug(f" <control channel> - {channel_control}")
+    else:
+        logging.debug(f" <request channel> - {channel_request}")
+        if args:
+            args = (channel_request.replace("-","."),) + args
+        else:
+            args = (channel_request.replace("-","."),)
+    return args
