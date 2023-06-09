@@ -110,23 +110,23 @@ def server_actions(action,args):
     else:
         response =f"*{quote('ok')}\nOrc **{action}** warcamp **{servername}** in {orchestrator['name'].upper()}."
         if action == 'get':
-            response += "```yaml\n{0:<12}: {1}\n{2:<12}: {3}\n{4:<12}: {5}\n{6:<12}: {7}\n".format("Name",data["servername"],"Game",data['game_uid'],"Description",data["description"],"State",data["server_state"].lower())
-            if data["time"] != None:
-                today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
-                stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
-                if str(today.date()) == str(stoptime.date()):
-                    response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z"))
-                else:
-                    response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z [%x]"))
+            response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n".format("Warcamp",data["servername"],"Type",data['game_uid'],"Peon State",(data["server_state"].lower()),"Description",data["description"])
             try:
                 if data['server_config']:
                     response += "---\n"
-                    config_dict = json.loads(data['server_config'])
+                    config_dict = data['server_config']
                     for key,value in config_dict.items():
-                        response += "{0:<25} : {1}\n".format(key,value)
-                response += "```"
+                        response += "{0:<15}: {1}\n".format(key.title(),value)
             except:
-                response += f"{data['server_config']}\n```"
+                response += f"---\n{data['server_config']}\n"
+            response += "```"
+            if data["time"]:
+                today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
+                stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
+                response += "\n\t:alarm_clock: Orc will turn off server at ``"
+                if str(today.date()) == str(stoptime.date()): response += stoptime.strftime("%X %Z")
+                else: response += stoptime.strftime("%X %Z [%x]")
+                response += "``"
         else:
             timer = {}
             if arg_time:
