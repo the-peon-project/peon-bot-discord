@@ -26,7 +26,7 @@ def identify_channel(channel_control,channel_request,args):
     else:
         logging.debug(f" <request channel> - {channel_request}")
         if args:
-            args = (channel_request.replace("-","."),) + args
+            args = tuple(channel_request.split('-'))[::-1] + args
         else:
-            args = (channel_request.replace("-","."),)
+            args = tuple(channel_request.split('-'))[::-1]
     return args
