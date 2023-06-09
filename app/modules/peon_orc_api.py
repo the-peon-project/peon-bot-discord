@@ -7,6 +7,13 @@ from modules import get_peon_orcs, settings
 from modules.messaging import *
 import re
 
+# Services Get users in a certain group
+def get_servers(url, api_key):
+    logging.debug('[getServers]')
+    url = f"{url}/api/1.0/servers"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    return (requests.get(url, headers=headers)).json()
+
 def get_servers_all(peon_orchestrators):
     response = f"*\'{quote('hello')}\'*\n"
     for orchestrator in peon_orchestrators:
@@ -16,13 +23,6 @@ def get_servers_all(peon_orchestrators):
             response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
     return response
-
-# Services Get users in a certain group
-def get_servers(url, api_key):
-    logging.debug('[getServers]')
-    url = f"{url}/api/1.0/servers"
-    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    return (requests.get(url, headers=headers)).json()
 
 def look_for_regex_in_args(regex,args):
     try:
@@ -65,7 +65,7 @@ def server_actions(action,args):
     server = {}
     for orchestrator in peon_orchestrators:
         try:
-            servers = get_servers(orchestrator['url'], orchestrator['key'])['servers']
+            servers = get_servers(orchestrator['url'], orchestrator['key'])
             for server in servers:
                 server['orchestrator'] = orchestrator['name'].lower()
             server_list.extend(servers)
@@ -104,14 +104,13 @@ def server_actions(action,args):
     serveruid=f"{game_uid}.{servername}"
     orchestrator = next((orc for orc in peon_orchestrators if orc['name'] == matched_server_list[0]['orchestrator']), None)
     # STEP 5: Trigger action on server
-    apiresponse = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
-    if "error" in apiresponse:
+    data = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
+    if "error" in data:
         response = error_message('srv.action.error','get')
     else:
-        response =f"*{quote('ok')}\nOrc {action} ({game_uid}) warcamp ``{servername}`` in {orchestrator['name'].upper()}."
+        response =f"*{quote('ok')}\nOrc **{action}** warcamp **{servername}** in {orchestrator['name'].upper()}."
         if action == 'get':
-            data = apiresponse['server']
-            response += "```yaml\n{0:<25} : {1}\n{2:<25} : {3}\n{4:<25} : {5}\n".format("Game ID",data['game_uid'],"Warcamp Name",data["servername"],"State",data["server_state"].lower())
+            response += "```yaml\n{0:<12}: {1}\n{2:<12}: {3}\n{4:<12}: {5}\n{6:<12}: {7}\n".format("Name",data["servername"],"Game",data['game_uid'],"Description",data["description"],"State",data["server_state"].lower())
             if data["time"] != None:
                 today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
                 stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
@@ -119,11 +118,12 @@ def server_actions(action,args):
                     response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z"))
                 else:
                     response += "{0:<25} : {1}\n".format("Server Shutdown",stoptime.strftime("%X %Z [%x]"))
-            response += "---\n"
             try:
-                config_dict = json.loads(data['server_config'])
-                for key,value in config_dict.items():
-                    response += "{0:<25} : {1}\n".format(key,value)
+                if data['server_config']:
+                    response += "---\n"
+                    config_dict = json.loads(data['server_config'])
+                    for key,value in config_dict.items():
+                        response += "{0:<25} : {1}\n".format(key,value)
                 response += "```"
             except:
                 response += f"{data['server_config']}\n```"
