@@ -51,13 +51,20 @@ def server_actions(action,args):
     # STEP 1: Check that there are some registered orchestrators
     if 'error' in (result := get_peon_orcs())['status']: return error_message('orc.none',action)
     peon_orchestrators = result['data']
-    #STEP 2: Get argument informarion
+    #STEP 2: Get argument information
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
     arg_time = look_for_regex_in_args("^(\d{2})[:h](\d{2})$",args)
     if arg_time: args.remove(arg_time)
+    
     arg_interval = look_for_regex_in_args("^\d+\D$",args)
-    if arg_interval: args.remove(arg_interval)
+    time_unit=""
+    if not arg_interval:
+        if (arg_interval := look_for_regex_in_args("\d+",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
+    if arg_interval: 
+        args.remove(arg_interval)
+        arg_interval += time_unit
+    
     if len(args) < 1: return error_message('parameterCount',action)
     # STEP 3: Get list of servers on orchestrators
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
