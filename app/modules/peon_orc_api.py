@@ -49,8 +49,8 @@ def server_actions(action,args):
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    peon_orchestrators = get_peon_orcs()
-    if peon_orchestrators == "EMPTY": return error_message('orc.none',action)
+    if 'error' in (result := get_peon_orcs())['status']: return error_message('orc.none',action)
+    peon_orchestrators = result['data']
     #STEP 2: Get argument informarion
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
