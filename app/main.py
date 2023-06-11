@@ -1,5 +1,6 @@
 #/usr/bin/python3
 import os
+import sys
 import re
 import logging
 import discord
@@ -7,6 +8,7 @@ from discord.ext import commands
 from modules import usage_text, settings, identify_channel
 from modules.peon_orc_api import *
 from modules.messaging import *
+from modules.shared import configure_logging
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -86,6 +88,14 @@ async def clear(ctx, amount: int):
 
 # MAIN
 if __name__ == "__main__":
-    TOKEN = os.environ['DISCORD_TOKEN']
-    logging.basicConfig(filename='/var/log/peon/bot.discord.log', filemode='a',format='%(asctime)s %(thread)d [%(levelname)s] - %(message)s', level=logging.DEBUG)
-    logging.debug(bot.run(TOKEN))
+    # Configure logging
+    configure_logging()
+    # Get Discord token
+    TOKEN = os.environ.get('DISCORD_TOKEN', None)
+    if TOKEN:
+        logging.debug(bot.run(TOKEN))
+    else:
+        logging.error("Please create and configure a valid Discord token.")
+        # Force a non-zero exit status
+        exit_status = 2
+        sys.exit(exit_status)
