@@ -9,7 +9,7 @@ import re
 
 # Services Get users in a certain group
 def get_servers(url, api_key):
-    logging.debug('[getServers]')
+    logging.debug('[get_servers]')
     url = f"{url}/api/1.0/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.get(url, headers=headers)).json()
@@ -22,6 +22,23 @@ def get_servers_all(peon_orchestrators):
             server_uid = f"{server['game_uid']}.{server['servername']}"
             response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
+    return response
+
+def get_plans(url, api_key):
+    logging.debug('[get_plans]')
+    url = f"{url}/api/1.0/plans"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    return (requests.get(url, headers=headers)).json()
+
+def get_plans_all(peon_orchestrators):
+    logging.debug('[get_plans]')
+    response = f"*\'{quote('hello')}\'*\n"
+    response += f"WARPLANS\n*The currently available warplans for your ochestrators.*\n```yaml"
+    response += "\n{0:<15} : {1}\n{2:<15} : {2}".format("game_uid","game","---")
+    plans = get_plans(peon_orchestrators[0]['url'], peon_orchestrators[0]['key'])
+    for plan in plans:
+        response += "\n{0:<15} : {1}".format(plan['game_uid'],plan['title'])
+    response += "\n```"
     return response
 
 def look_for_regex_in_args(regex,args):

@@ -85,6 +85,29 @@ async def clear(ctx, amount: int):
         await ctx.send(f"{amount} message(s) got deleted")
     else:
         await ctx.send(error_message('unauthorized', 'auth'))
+        
+@bot.command(name='plans')
+async def get_all(ctx):
+    logging.debug("Get all plans \'get\' requested")
+    if ctx.channel.name == control_channel:
+        if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+            logging.debug(f"-----------------> {peon_orchestrators}")
+            response = get_plans_all(peon_orchestrators['data'])
+        else: response = error_message('none', 'register')
+    else: response = error_message('unauthorized', 'auth')
+    await ctx.send(response)
+    
+# @bot.command(name='plan')
+# async def get_all(ctx):
+#     logging.debug("Get plans \'get\' requested")
+#     if ctx.channel.name == control_channel:
+#         if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+#             response = get_servers_all(peon_orchestrators['data'])
+#         else:
+#             response = error_message('none', 'register')
+#     else:
+#         response = error_message('unauthorized', 'auth')
+#     await ctx.send(response)
 
 # MAIN
 if __name__ == "__main__":
