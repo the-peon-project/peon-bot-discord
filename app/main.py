@@ -87,27 +87,33 @@ async def clear(ctx, amount: int):
         await ctx.send(error_message('unauthorized', 'auth'))
         
 @bot.command(name='plans')
-async def get_all(ctx):
-    logging.debug("Get all plans \'get\' requested")
+async def get_plans(ctx):
+    logging.debug("All plans \'get\' requested")
     if ctx.channel.name == control_channel:
         if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
-            logging.debug(f"-----------------> {peon_orchestrators}")
-            response = get_plans_all(peon_orchestrators['data'])
+            response = get_warplans(peon_orchestrators['data'])
         else: response = error_message('none', 'register')
     else: response = error_message('unauthorized', 'auth')
     await ctx.send(response)
     
-# @bot.command(name='plan')
-# async def get_all(ctx):
-#     logging.debug("Get plans \'get\' requested")
-#     if ctx.channel.name == control_channel:
-#         if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
-#             response = get_servers_all(peon_orchestrators['data'])
-#         else:
-#             response = error_message('none', 'register')
-#     else:
-#         response = error_message('unauthorized', 'auth')
-#     await ctx.send(response)
+@bot.command(name='plan')
+async def get_plan(ctx, *args):
+    logging.debug("Plan 'get' requested")
+    if ctx.channel.name == control_channel:
+        if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+            if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]: # type: ignore
+                embed = discord.Embed()
+                embed.set_image(url=response['image_url'])
+                embed.add_field(name='WARPLAN', value=response['message'])
+                await ctx.send(embed=embed)
+            else:
+                await ctx.send(response['message'])
+        else:
+            response = error_message('none', 'register')
+            await ctx.send(response)
+    else:
+        response = error_message('unauthorized', 'auth')
+        await ctx.send(response)
 
 # MAIN
 if __name__ == "__main__":

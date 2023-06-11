@@ -10,7 +10,7 @@ import re
 # Services Get users in a certain group
 def get_servers(url, api_key):
     logging.debug('[get_servers]')
-    url = f"{url}/api/1.0/servers"
+    url = f"{url}/api/v1/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.get(url, headers=headers)).json()
 
@@ -24,22 +24,35 @@ def get_servers_all(peon_orchestrators):
         response += "\n```"
     return response
 
-def get_plans(url, api_key):
+def get_warplans(peon_orchestrators):
     logging.debug('[get_plans]')
-    url = f"{url}/api/1.0/plans"
-    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    return (requests.get(url, headers=headers)).json()
-
-def get_plans_all(peon_orchestrators):
-    logging.debug('[get_plans]')
+    url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
+    plans = requests.get(url, headers=headers).json()
     response = f"*\'{quote('hello')}\'*\n"
     response += f"WARPLANS\n*The currently available warplans for your ochestrators.*\n```yaml"
     response += "\n{0:<15} : {1}\n{2:<15} : {2}".format("game_uid","game","---")
-    plans = get_plans(peon_orchestrators[0]['url'], peon_orchestrators[0]['key'])
     for plan in plans:
         response += "\n{0:<15} : {1}".format(plan['game_uid'],plan['title'])
     response += "\n```"
     return response
+
+def get_warplan(peon_orchestrators,args):
+    logging.debug('[get_plans]')
+    if len(args) < 1:
+        return { "status" : "error", "message" : f"{error_message('plan.param','plan')}"}
+    url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{args[0]}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
+    response = requests.get(url, headers=headers)
+    if response.status_code != 200: return { "status" : "error", "message" : error_message('plan.dne','plan')}
+    plan = response.json()
+    response = f"*\'{quote('hello')}\'*\n"
+    response += f"*Warplan takes the following settings.*\n```yaml"
+    for key, value in plan.items():
+        response += "\n{0:<15} : {1}".format(key,value)
+    response += "\n```"
+    return { "status" : "success", "message" : f"{response}", "image_url" : f"https://raw.githubusercontent.com/the-peon-project/peon-warplans/main/{args[0]}/logo.png"}
+
 
 def look_for_regex_in_args(regex,args):
     try:
@@ -53,7 +66,7 @@ def look_for_regex_in_args(regex,args):
 
 def server_action(url, api_key, server_uid, action, timer={}):
     logging.debug(f'[serverAction - {action}]')
-    url = f"{url}/api/1.0/server/{action}/{server_uid}"
+    url = f"{url}/api/v1/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     if action == "get":
         return (requests.get(url, headers=headers)).json()
@@ -66,7 +79,7 @@ def server_actions(action,args):
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    if 'error' in (result := get_peon_orcs())['status']: return error_message('orc.none',action)
+    if 'error' in (result := get_peon_orcs())['status']: return error_message('orc.none',action) # type: ignore
     peon_orchestrators = result['data']
     #STEP 2: Get argument information
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
@@ -77,7 +90,7 @@ def server_actions(action,args):
     arg_interval = look_for_regex_in_args("^\d+\D$",args)
     time_unit=""
     if not arg_interval:
-        if (arg_interval := look_for_regex_in_args("\d+",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
+        if (arg_interval := look_for_regex_in_args("\d+",args)): time_unit = 'm' # type: ignore # If several digits are provided then assume it is a minute count
     if arg_interval: 
         args.remove(arg_interval)
         arg_interval += time_unit
