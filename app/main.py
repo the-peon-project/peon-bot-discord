@@ -12,8 +12,8 @@ from modules.shared import configure_logging
 intents = discord.Intents.default()
 intents.message_content = True
 # Settings
-bot = commands.Bot(command_prefix='!',intents=intents)
-control_channel='peon'
+bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
+control_channel=settings['control_channel']
 
 def build_card(title=None,message=None,quote='nok',image_url=None,thumbnail_url=None,game_uid=None):
     embed = discord.Embed()

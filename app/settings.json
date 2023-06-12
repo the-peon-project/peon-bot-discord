@@ -1,4 +1,6 @@
 {
     "timezone" : "Africa/Johannesburg",
-    "language" : "english"
+    "language" : "english",
+    "control_channel" : "peon",
+    "command_prefix" : "!"
 }
