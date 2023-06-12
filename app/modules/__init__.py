@@ -1,23 +1,28 @@
-import json
-import os
 import logging
+import json
 
 # Container prefix
 prefix = "peon.warcamp."
-# Project working directory
-project_path = "/".join(((os.path.dirname(__file__)).split("/"))[:-1])
-# Configuration file
-settings = json.load(open(f"{project_path}/settings.json", 'r'))
 
-usage_text = (open(f"{project_path}/config/documents/help.md", "r")).read()
+# Import lookup files
+settings = json.load(open(f"/app/settings.json", 'r'))
+cmd_aliases = json.load(open(f"/app/config/documents/aliases.json", "r"))
+# Import relevant language file data
+txt_quotes = json.load(open(f"/app/config/documents/{settings['language'].lower()}/quotes.json", "r"))
+txt_commands = json.load(open(f"/app/config/documents/{settings['language'].lower()}/commands.json", "r"))
+txt_errors = json.load(open(f"/app/config/documents/{settings['language'].lower()}/errors.json", "r"))
+
+# def quote(group="hello"):
+#     return random.choice(responses[group])
+
 
 def get_peon_orcs():
     try:
         logging.debug("Loading orchestrators file") 
-        return {"status" : "success" , "data" : json.load(open(f'{project_path}/config/peon.orchestrators.json', 'r'))}
+        return {"status" : "success" , "data" : json.load(open(f'/app/config/peon.orchestrators.json', 'r'))}
     except Exception as e:
         logging.debug("No war orchestrators file found. Creating one")
-        open(f"{project_path}/config/peon.orchestrators.json", 'a').close()
+        open(f"/app/config/peon.orchestrators.json", 'a').close()
         return {"status" : "error", "info" : f"{e}"}
 
 def identify_channel(channel_control,channel_request,args):

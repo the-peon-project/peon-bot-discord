@@ -4,7 +4,6 @@ import pytz
 import logging
 import requests
 from modules import get_peon_orcs, settings
-from modules.messaging import *
 import re
 
 # Services Get users in a certain group
@@ -15,44 +14,40 @@ def get_servers(url, api_key):
     return (requests.get(url, headers=headers)).json()
 
 def get_servers_all(peon_orchestrators):
-    response = f"*\'{quote('hello')}\'*\n"
     for orchestrator in peon_orchestrators:
         response += f"{orchestrator['name'].upper()}\n```yaml"
         for server in get_servers(orchestrator['url'], orchestrator['key']):
             server_uid = f"{server['game_uid']}.{server['servername']}"
             response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
-    return response
+    return { "status" : "success", "response" : f"{response}" }
 
 def get_warplans(peon_orchestrators):
     logging.debug('[get_plans]')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     plans = requests.get(url, headers=headers).json()
-    response = f"*\'{quote('hello')}\'*\n"
     response += f"WARPLANS\n*The currently available warplans for your ochestrators.*\n```yaml"
     response += "\n{0:<15} : {1}\n{2:<15} : {2}".format("game_uid","game","---")
     for plan in plans:
         response += "\n{0:<15} : {1}".format(plan['game_uid'],plan['title'])
     response += "\n```"
-    return response
+    return { "status" : "success", "response" : f"{response}" }
 
 def get_warplan(peon_orchestrators,args):
     logging.debug('[get_plans]')
     if len(args) < 1:
-        return { "status" : "error", "message" : f"{error_message('plan.param','plan')}"}
+        return { "status" : "error", "code" : "plan.param", "info" : "plan"}
     url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{args[0]}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     response = requests.get(url, headers=headers)
-    if response.status_code != 200: return { "status" : "error", "message" : error_message('plan.dne','plan')}
+    if response.status_code != 200: return { "status" : "error", "code" : "plan.dne", "info" : "plan"}
     plan = response.json()
-    response = f"*\'{quote('hello')}\'*\n"
     response += f"*Warplan takes the following settings.*\n```yaml"
     for key, value in plan.items():
         response += "\n{0:<15} : {1}".format(key,value)
     response += "\n```"
-    return { "status" : "success", "message" : f"{response}", "image_url" : f"https://raw.githubusercontent.com/the-peon-project/peon-warplans/main/{args[0]}/logo.png"}
-
+    return { "status" : "success", "response" : f"{response}" }
 
 def look_for_regex_in_args(regex,args):
     try:
@@ -73,13 +68,13 @@ def server_action(url, api_key, server_uid, action, timer={}):
     return (requests.put(url, headers=headers,json=timer)).json()
 
 def server_actions(action,args):
-    if len(args) == 0: return error_message('parameterCount',action)
+    if len(args) == 0: return { "status" : "error", "code" : "srv.param", "info" : action}
     args_old = list(args)
     args = []
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    if 'error' in (result := get_peon_orcs())['status']: return error_message('orc.none',action) # type: ignore
+    if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "code" : "orc.none", "info" : action} # type: ignore
     peon_orchestrators = result['data']
     #STEP 2: Get argument information
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
@@ -95,7 +90,7 @@ def server_actions(action,args):
         args.remove(arg_interval)
         arg_interval += time_unit
     
-    if len(args) < 1: return error_message('parameterCount',action)
+    if len(args) < 1: return { "status" : "error", "code" : "srv.param", "info" : action}
     # STEP 3: Get list of servers on orchestrators
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
     server_list = []
@@ -108,7 +103,7 @@ def server_actions(action,args):
             server_list.extend(servers)
         except:
             logging.warn(f"Host {orchestrator} is unavailable.")
-    if len(server_list) == 0: return error_message('orc.notavailable',action)
+    if len(server_list) == 0: return { "status" : "error", "code" : "orc.notavailable", "info" : action}
     # STEP 4: Try and find server with remaining arg/s
     matched_server_list = []
     for server in server_list:
@@ -116,7 +111,7 @@ def server_actions(action,args):
         if arg_servername:
             matched_server_list.append(server)
             break
-    if len(matched_server_list) == 0: return error_message('srv.dne',action)
+    if len(matched_server_list) == 0: return { "status" : "error", "code" : "srv.dne", "info" : action}
     elif len(matched_server_list) > 1:
         server_list = matched_server_list
         matched_server_list = []
@@ -125,7 +120,7 @@ def server_actions(action,args):
             if arg_gameuid:
                 matched_server_list.append(server)
                 break
-    if len(matched_server_list) == 0: return error_message('srv.dne',action)
+    if len(matched_server_list) == 0: return { "status" : "error", "code" : "srv.dne", "info" : action}
     elif len(matched_server_list) > 1:
         server_list = matched_server_list
         matched_server_list = []
@@ -134,8 +129,8 @@ def server_actions(action,args):
             if arg_orchestrator:
                 matched_server_list.append(server)
                 break
-    if len(matched_server_list) == 0: return error_message('srv.dne',action)
-    elif len(matched_server_list) > 1: return error_message('parameterCount',action)
+    if len(matched_server_list) == 0: return { "status" : "error", "code" : "srv.dne", "info" : action}
+    elif len(matched_server_list) > 1: return { "status" : "error", "code" : "srv.param", "info" : action}
     game_uid = matched_server_list[0]['game_uid']
     servername = matched_server_list[0]['servername']
     serveruid=f"{game_uid}.{servername}"
@@ -143,9 +138,9 @@ def server_actions(action,args):
     # STEP 5: Trigger action on server
     data = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
     if "error" in data:
-        response = error_message('srv.action.error','get')
+        response = { "status" : "error", "code" : "srv.action.error", "info" : action}
     else:
-        response =f"*{quote('ok')}\nOrc **{action}** warcamp **{servername}** in {orchestrator['name'].upper()}."
+        response =f"Orc **{action}** warcamp **{servername}** in {orchestrator['name'].upper()}."
         if action == 'get':
             response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n".format("Warcamp",data["servername"],"Type",data['game_uid'],"Peon State",(data["server_state"].lower()),"Description",data["description"])
             try:
@@ -173,7 +168,7 @@ def server_actions(action,args):
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
-                    return error_message('schedule.past',action)
+                    return { "status" : "error", "code" : "schedule.past", "info" : action}
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_datetime:
@@ -182,17 +177,11 @@ def server_actions(action,args):
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
-                    return error_message('schedule.past',action)
+                    return { "status" : "error", "code" : "schedule.past", "info" : action}
                 timer = {"epoch_time" : f"{epoch}"}
                 response += f"\n\tWarcamp will shut down at {timestring}.*"
             elif arg_interval:
                 timer = { "interval" : f"{arg_interval}" }
                 response += f"\n\tWarcamp will shut down in {arg_interval}.*"
             server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
-        return response
-    
-
-######## MAIN - FOR TEST PURPOSES
-
-if __name__ == "__main__":
-    print(get_servers("http://dockerdev.za.cloudlet.cloud:5000","my-super-secret-api-key"))
+        return { "status" : "success", "response" : f"{response}" }
