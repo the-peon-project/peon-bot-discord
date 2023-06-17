@@ -11,16 +11,27 @@ from modules.shared import configure_logging
 
 intents = discord.Intents.default()
 intents.message_content = True
+
 # Settings
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 control_channel=settings['control_channel']
 
-def build_card(title=None,message=None,quote='nok',image_url=None,thumbnail_url=None,game_uid=None):
-    embed = discord.Embed()
+def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
+    embed = discord.Embed(color=discord.Color.orange())
+    embed.description = '_"{0}"_'.format(txt_errors[err_code])
+    code = txt_commands[command][permission]
+    note = txt_commands[command]['note']
+    message=f"{note}"
+    if code:
+        message+=f"```bash\n{code}```"
+    embed.add_field(name=f"Request failure",value=message)
+    return embed
+
+def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_uid=None):
+    embed = discord.Embed(color=discord.Color.green())
+    embed.description = f'_"{get_quote()}"_'
     if message:
         embed.add_field(name=title, value=message)
-    if quote:
-        embed.set_footer(text=f"{quote}")
     if image_url:
         embed.set_image(url=image_url)
     elif thumbnail_url:
@@ -41,7 +52,7 @@ async def on_ready():
 @bot.command(name='poke')
 async def poke(ctx):
     logging.debug('Poke requested')
-    await ctx.send(embed=build_card(quote="Zugg Zugg",image_url="https://raw.githubusercontent.com/the-peon-project/peon/main/media/PEON_med.png"))
+    await ctx.send(embed=build_card(image_url=settings['logo']))
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
@@ -49,37 +60,43 @@ async def get_all(ctx):
     if ctx.channel.name == control_channel:
         if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
             response = get_servers_all(peon_orchestrators['data'])
-            await ctx.send(embed=build_card(title="All Servers",message=response,quote="Don't quote me on this."))
+            await ctx.send(embed=build_card(title="All Servers",message=response['data']))
         else:
-            response = "TODO" # error_message('none', 'register')
-            await ctx.send(response)
+            await ctx.send(embed=build_card_err(err_code="orc.none",command="register",permission="admin"))
     else:
-        response = "TODO" # error_message('unauthorized', 'auth')
-        await ctx.send(response)
+        await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission="user"))
 
 @bot.command(name='get',aliases=cmd_aliases["get"])
 async def get(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.debug(f"Server GET requested - {args} ")
-    await ctx.send(server_actions('get', args))
+    if "success" in (response := server_actions('get', args))['status']: embed = build_card(title="Get Server",message=response['data']) # type: ignore
+    else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
+    await ctx.send(embed=embed)
 
 @bot.command(name='start',aliases=cmd_aliases["start"])
 async def start(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server START requested - {args} ")
-    await ctx.send(server_actions('start', args))
+    if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data']) # type: ignore
+    else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
+    await ctx.send(embed=embed)
 
 @bot.command(name='stop',aliases=cmd_aliases["stop"])
 async def stop(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server STOP requested - {args} ")
-    await ctx.send(server_actions('stop', args))
+    if "success" in (response := server_actions('stop', args))['status']: embed = build_card(title="Stop Server",message=response['data']) # type: ignore
+    else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
+    await ctx.send(embed=embed)
 
 @bot.command(name='restart',aliases=cmd_aliases["restart"])
 async def restart(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server RESTART requested - {args} ")
-    await ctx.send(server_actions('restart', args))
+    if "success" in (response := server_actions('restart', args))['status']: embed = build_card(title="Restart Server",message=response['data']) # type: ignore
+    else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
+    await ctx.send(embed=embed)
 
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
