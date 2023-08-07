@@ -7,12 +7,12 @@ prefix = "peon.warcamp."
 
 # Import lookup files
 settings = json.load(open(f"/app/settings.json", 'r'))
-cmd_aliases = json.load(open(f"/app/config/documents/aliases.json", "r"))
+cmd_aliases = json.load(open(f"/app/reference/aliases.json", "r"))
 
 # Import relevant language file data
-txt_quotes = json.load(open(f"/app/config/documents/{settings['language'].lower()}/quotes.json", "r"))
-txt_commands = json.load(open(f"/app/config/documents/{settings['language'].lower()}/commands.json", "r"))
-txt_errors = json.load(open(f"/app/config/documents/{settings['language'].lower()}/errors.json", "r"))
+txt_quotes = json.load(open(f"/app/reference/{settings['language'].lower()}/quotes.json", "r"))
+txt_commands = json.load(open(f"/app/reference/{settings['language'].lower()}/commands.json", "r"))
+txt_errors = json.load(open(f"/app/reference/{settings['language'].lower()}/errors.json", "r"))
 
 # Create a random quote selector
 def get_quote():
