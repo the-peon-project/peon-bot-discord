@@ -61,7 +61,7 @@ def look_for_regex_in_args(regex,args):
         return None
 
 def server_action(url, api_key, server_uid, action, timer={}):
-    logging.debug(f'[serverAction - {action}]')
+    logging.debug(f'[serverAction] - {action}]')
     url = f"{url}/api/v1/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     if action == "get":
