@@ -83,10 +83,10 @@ def server_actions(action,args):
     arg_time = look_for_regex_in_args("^(\d{2})[:h](\d{2})$",args)
     if arg_time: args.remove(arg_time)
     
-    arg_interval = look_for_regex_in_args("^\d+\D$",args)
+    arg_interval = look_for_regex_in_args("^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
     time_unit=""
     if not arg_interval:
-        if (arg_interval := look_for_regex_in_args("\d+",args)): time_unit = 'm' # type: ignore # If several digits are provided then assume it is a minute count
+        if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # type: ignore # If several digits are provided then assume it is a minute count
     if arg_interval: 
         args.remove(arg_interval)
         arg_interval += time_unit
