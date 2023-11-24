@@ -124,8 +124,11 @@ async def usage(ctx):
     response = ""
     for command, info in commands.items():
         if info[args[0]]:
-            response += f"**{command.capitalize()}** {info['symbol']} `{info[args[0]]}`\n"
-            response += f"{info['note']}\n\n"
+            if args[0] == 'admin':
+                response += f"`{info[args[0]]}` {info['note']}\n\n"
+            else:
+                response += f"**{command.capitalize()}** {info['symbol']} `{info[args[0]]}`\n"
+                response += f"{info['note']}\n\n"
     embed = build_card(title="Usage Information",message=response)
     await ctx.send(embed=embed)
 
