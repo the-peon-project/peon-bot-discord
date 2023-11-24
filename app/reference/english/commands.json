@@ -47,6 +47,12 @@
         "admin": "!stop servername gameuid* orchestrator* session_duration* autostop_time*",
         "symbol": ":stop_sign:"
     },
+    "update": {
+        "note": "Update the game server files (will automatically stop/start the server).",
+        "user": "!update",
+        "admin": "!update",
+        "symbol": ":tools:"
+    },
     "restart": {
         "note": "Restart a game server.",
         "user": "!restart",
