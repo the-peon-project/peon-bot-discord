@@ -28,7 +28,7 @@ def get_peon_orcs():
         open(f"/app/config/peon.orchestrators.json", 'a').close()
         return {"status" : "error", "info" : f"{e}"}
 
-def identify_channel(channel_control,channel_request,args):
+def identify_channel(channel_control,channel_request,args=tuple()):
     if channel_request == channel_control:
         permission='admin'
         logging.debug(f" <control channel> - {channel_control}")
