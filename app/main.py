@@ -81,6 +81,14 @@ async def start(ctx, *args):
     if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data']) # type: ignore
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
+    
+@bot.command(name='update',aliases=cmd_aliases["update"])
+async def update(ctx, *args):
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    logging.info(f"Server UPDATE requested - {args} ")
+    if "success" in (response := server_actions('update', args))['status']: embed = build_card(title="Update Server",message=response['data']) # type: ignore
+    else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
+    await ctx.send(embed=embed)
 
 @bot.command(name='stop',aliases=cmd_aliases["stop"])
 async def stop(ctx, *args):

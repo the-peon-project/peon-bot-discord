@@ -25,5 +25,8 @@
     ],
     "clear": [
         "Clear"
+    ],
+    "update": [
+        "Update"
     ]
 }
