@@ -1,5 +1,6 @@
 #/usr/bin/python3
 import os
+import json
 import sys
 import re
 import logging
@@ -116,8 +117,17 @@ async def register(ctx, *args):
 
 @bot.command(name='usage',aliases=cmd_aliases["usage"])
 async def usage(ctx):
-    response = "TODO"
-    await ctx.send("TODO")
+    language = os.getenv("LANGUAGE","english")
+    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name)
+    with open(f"/app/reference/{language}/commands.json", 'r') as file:
+        commands = json.load(file)
+    response = ""
+    for command, info in commands.items():
+        if info[args[0]]:
+            response += f"**{command.capitalize()}** {info['symbol']} `{info[args[0]]}`\n"
+            response += f"{info['note']}\n\n"
+    embed = build_card(title="Usage Information",message=response)
+    await ctx.send(embed=embed)
 
 @bot.command(name='clear',aliases=cmd_aliases["clear"])
 @commands.has_permissions(manage_messages=True)
@@ -135,8 +145,8 @@ async def get_plans(ctx):
     if ctx.channel.name == control_channel:
         if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
             response = get_warplans(peon_orchestrators['data'])
-        else: response = "TODO" # error_message('none', 'register')
-    else: response = "TODO" # error_message('unauthorized', 'auth')
+        else: response = "TODO" # error_message('none', 'register') # TODO
+    else: response = "TODO" # error_message('unauthorized', 'auth') # TODO
     await ctx.send(response)
     
 @bot.command(name='plan')
@@ -152,10 +162,10 @@ async def get_plan(ctx, *args):
             else:
                 await ctx.send(response['message'])
         else:
-            response = "TODO" #error_message('none', 'register')
+            response = "TODO" #error_message('none', 'register') # TODO
             await ctx.send(response)
     else:
-        response = "TODO" # error_message('unauthorized', 'auth')
+        response = "TODO" # error_message('unauthorized', 'auth') # TODO
         await ctx.send(response)
 
 # MAIN
