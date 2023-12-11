@@ -43,7 +43,7 @@
     },
     "stop": {
         "note": "Stop a game server (Optionally, delay the stop by a specific duration/to a specific time).",
-        "user": "!start session_duration* shutoff_time*",
+        "user": "!stop session_duration* shutoff_time*",
         "admin": "!stop servername gameuid* orchestrator* session_duration* autostop_time*",
         "symbol": ":stop_sign:"
     },
