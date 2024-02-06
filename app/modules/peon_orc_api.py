@@ -75,7 +75,7 @@ def server_actions(action,args):
     for arg in args_old:
         args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
-    if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "err_code" : "orc.none", "command" : action} # type: ignore
+    if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "err_code" : "orc.none", "command" : action}
     peon_orchestrators = result['data']
     #STEP 2: Get argument information
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
@@ -86,7 +86,7 @@ def server_actions(action,args):
     arg_interval = look_for_regex_in_args("^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
     time_unit=""
     if not arg_interval:
-        if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # type: ignore # If several digits are provided then assume it is a minute count
+        if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
     if arg_interval: 
         args.remove(arg_interval)
         arg_interval += time_unit

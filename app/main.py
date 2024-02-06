@@ -59,7 +59,7 @@ async def poke(ctx):
 async def get_all(ctx):
     logging.debug("Servers & hosts \'get\' requested")
     if ctx.channel.name == control_channel:
-        if "success" in ( peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+        if "success" in ( peon_orchestrators := get_peon_orcs())['status']:
             response = get_servers_all(peon_orchestrators['data'])
             await ctx.send(embed=build_card(title="All Servers",message=response['data']))
         else:
@@ -71,7 +71,7 @@ async def get_all(ctx):
 async def get(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.debug(f"Server GET requested - {args} ")
-    if "success" in (response := server_actions('get', args))['status']: embed = build_card(title="Get Server",message=response['data']) # type: ignore
+    if "success" in (response := server_actions('get', args))['status']: embed = build_card(title="Get Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
 
@@ -79,7 +79,7 @@ async def get(ctx, *args):
 async def start(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server START requested - {args} ")
-    if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data']) # type: ignore
+    if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
     
@@ -87,7 +87,7 @@ async def start(ctx, *args):
 async def update(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server UPDATE requested - {args} ")
-    if "success" in (response := server_actions('update', args))['status']: embed = build_card(title="Update Server",message=response['data']) # type: ignore
+    if "success" in (response := server_actions('update', args))['status']: embed = build_card(title="Update Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
 
@@ -95,7 +95,7 @@ async def update(ctx, *args):
 async def stop(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server STOP requested - {args} ")
-    if "success" in (response := server_actions('stop', args))['status']: embed = build_card(title="Stop Server",message=response['data']) # type: ignore
+    if "success" in (response := server_actions('stop', args))['status']: embed = build_card(title="Stop Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
 
@@ -103,7 +103,7 @@ async def stop(ctx, *args):
 async def restart(ctx, *args):
     args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
     logging.info(f"Server RESTART requested - {args} ")
-    if "success" in (response := server_actions('restart', args))['status']: embed = build_card(title="Restart Server",message=response['data']) # type: ignore
+    if "success" in (response := server_actions('restart', args))['status']: embed = build_card(title="Restart Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
 
@@ -146,7 +146,7 @@ async def clear(ctx, amount: int):
 async def get_plans(ctx):
     logging.debug("All plans \'get\' requested")
     if ctx.channel.name == control_channel:
-        if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
+        if "success" in (peon_orchestrators := get_peon_orcs())['status']:
             response = get_warplans(peon_orchestrators['data'])
         else: response = "TODO" # error_message('none', 'register') # TODO
     else: response = "TODO" # error_message('unauthorized', 'auth') # TODO
@@ -156,8 +156,8 @@ async def get_plans(ctx):
 async def get_plan(ctx, *args):
     logging.debug("Plan 'get' requested")
     if ctx.channel.name == control_channel:
-        if "success" in (peon_orchestrators := get_peon_orcs())['status']: # type: ignore
-            if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]: # type: ignore
+        if "success" in (peon_orchestrators := get_peon_orcs())['status']:
+            if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]:
                 embed = discord.Embed()
                 embed.set_thumbnail(url=response['image_url'])
                 embed.add_field(name='WARPLAN', value=response['message'])
