@@ -2,7 +2,7 @@
 FROM python:3.11-slim-bullseye
 # Build information
 LABEL "com.peon.description"="Peon Bot - Discord"
-LABEL "maintainer"="Umlatt <richard@noxnoctua.com>"
+LABEL "maintainer"="Umlatt <richard@lazylionconsulting.com>"
 # Copy "branding" stuff
 COPY ./media/banner /etc/motd
 RUN echo "cat /etc/motd" >> /etc/bash.bashrc
