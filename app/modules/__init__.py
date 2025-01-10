@@ -24,22 +24,16 @@ def get_peon_orcs():
     try:
         config_file = "/app/config/peon.orchestrators.json"
         logging.debug("Loading orchestrators file")
-        
-        # Load orchestrators using `with`
         with open(config_file, 'r') as file:
             orchestrators = json.load(file)
-        
-        # Get the API key and update orchestrators
         API_KEY = os.environ.get('DISCORD_TOKEN')
         if API_KEY:
             for entry in orchestrators:
                 if entry["url"] == "http://peon.orc:5000":
                     entry["key"] = API_KEY
-                    break  # Exit the loop after finding and modifying the matching entry
-            # Write the updated data back to the file
+                break
             with open(config_file, 'w') as file:
                 json.dump(orchestrators, file, indent=4)
-        
         return {"status": "success", "data": orchestrators}
     
     except FileNotFoundError:
