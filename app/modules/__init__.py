@@ -26,7 +26,7 @@ def get_peon_orcs():
         logging.debug("Loading orchestrators file")
         with open(config_file, 'r') as file:
             orchestrators = json.load(file)
-        API_KEY = os.environ.get('DISCORD_TOKEN')
+        API_KEY = os.environ.get('LOCAL_API_KEY',None)
         if API_KEY:
             for entry in orchestrators:
                 if entry["url"] == "http://peon.orc:5000":
