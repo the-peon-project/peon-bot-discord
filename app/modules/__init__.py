@@ -35,15 +35,12 @@ def get_peon_orcs():
             with open(config_file, 'w') as file:
                 json.dump(orchestrators, file, indent=4)
         return {"status": "success", "data": orchestrators}
-    
     except FileNotFoundError:
         logging.debug("No orchestrators file found. Creating one.")
-        # Create an empty orchestrators file with a default structure
         default_data = []
         with open(config_file, 'w') as file:
             json.dump(default_data, file, indent=4)
         return {"status": "error", "info": "Orchestrators file not found. Created a new one."}
-    
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         return {"status": "error", "info": str(e)}
