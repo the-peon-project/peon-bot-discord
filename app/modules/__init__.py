@@ -30,10 +30,13 @@ def get_peon_orcs():
         if API_KEY:
             for entry in orchestrators:
                 if entry["url"] == "http://peon.orc:5000":
-                    entry["key"] = API_KEY
+                    if entry["key"] != API_KEY:
+                        logging.debug("Updating orchestrator API key")
+                        entry["key"] = f"'{API_KEY}'"
+                        with open(config_file, 'w') as file:
+                            json.dump(orchestrators, file, indent=4)
+                        entry["key"] = API_KEY
                 break
-            with open(config_file, 'w') as file:
-                json.dump(orchestrators, file, indent=4)
         return {"status": "success", "data": orchestrators}
     except FileNotFoundError:
         logging.debug("No orchestrators file found. Creating one.")
