@@ -1,6 +1,7 @@
 import logging
 import json
 import random
+import os
 
 # Container prefix
 prefix = "peon.warcamp."
@@ -21,12 +22,37 @@ def get_quote():
 # Load orchestrators from disk
 def get_peon_orcs():
     try:
-        logging.debug("Loading orchestrators file") 
-        return {"status" : "success" , "data" : json.load(open(f'/app/config/peon.orchestrators.json', 'r'))}
+        config_file = "/app/config/peon.orchestrators.json"
+        logging.debug("Loading orchestrators file")
+        
+        # Load orchestrators using `with`
+        with open(config_file, 'r') as file:
+            orchestrators = json.load(file)
+        
+        # Get the API key and update orchestrators
+        API_KEY = os.environ.get('DISCORD_TOKEN')
+        if API_KEY:
+            for entry in orchestrators:
+                if entry["url"] == "http://peon.orc:5000":
+                    entry["key"] = API_KEY
+                    break  # Exit the loop after finding and modifying the matching entry
+            # Write the updated data back to the file
+            with open(config_file, 'w') as file:
+                json.dump(orchestrators, file, indent=4)
+        
+        return {"status": "success", "data": orchestrators}
+    
+    except FileNotFoundError:
+        logging.debug("No orchestrators file found. Creating one.")
+        # Create an empty orchestrators file with a default structure
+        default_data = []
+        with open(config_file, 'w') as file:
+            json.dump(default_data, file, indent=4)
+        return {"status": "error", "info": "Orchestrators file not found. Created a new one."}
+    
     except Exception as e:
-        logging.debug("No war orchestrators file found. Creating one")
-        open(f"/app/config/peon.orchestrators.json", 'a').close()
-        return {"status" : "error", "info" : f"{e}"}
+        logging.error(f"An error occurred: {e}")
+        return {"status": "error", "info": str(e)}
 
 def identify_channel(channel_control,channel_request,args=tuple()):
     if channel_request == channel_control:
