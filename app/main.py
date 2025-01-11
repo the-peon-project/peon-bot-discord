@@ -56,6 +56,8 @@ async def poke(ctx):
     logging.debug('Poke requested')
     await ctx.send(embed=build_card(image_url=settings['logo']))
 
+import discord
+
 @bot.command(name='about')
 async def get_plans(ctx):
     logging.debug("'About' requested")
@@ -65,14 +67,12 @@ async def get_plans(ctx):
     response += "### Versions\n"
     response += f"Orchestrator: [-.-.-](<https://docs.warcamp.org/development/01_orchestrator/>)\n"
     response += f"Bot-Discord: [{os.environ.get('VERSION', '-.-.-')}](<https://docs.warcamp.org/development/50_bot_discord/>)\n"
-    # Get the markdown from the URL and add it to the response
     url = "https://raw.githubusercontent.com/the-peon-project/peon-docs/refs/heads/main/manual/docs/games.md"
     try:
         file_contents = requests.get(url).text
         response += "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
         for line in file_contents.splitlines():
             if re.search('- \[x\]', line):
-                # Remove the checkbox
                 line = re.sub('- \[x\]', '- ', line)
                 line = re.sub('./guides/games/', 'https://docs.warcamp.org/guides/games/', line)
                 line = re.sub('.md', '', line)
@@ -82,10 +82,12 @@ async def get_plans(ctx):
         response += "### Bugs/Issues\nPlease log any bugs or issues [here](<https://github.com/the-peon-project/peon/issues>).\n"
         response += "### Donations\nIf you would like to donate to the project please go [here](<https://ko-fi.com/umlatt>).\n"
         response += "### Community\nJoin the community on [Discord](<https://discord.gg/KJFVyayH8g>)\n"
-        
+        embed = discord.Embed(description=response)
+        embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_outline_small.png")
+        await ctx.send(embed=embed)
     except requests.RequestException as e:
         logging.error(f"Failed to fetch file contents: {e}")
-    await ctx.send(response)
+
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
