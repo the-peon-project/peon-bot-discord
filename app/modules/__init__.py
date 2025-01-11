@@ -7,14 +7,18 @@ import os
 prefix = "peon.warcamp."
 
 # Import lookup files
-settings = json.load(open(f"/app/settings.json", 'r'))
 cmd_aliases = json.load(open(f"/app/reference/aliases.json", "r"))
+settings={}
+settings['language'] = os.environ.get('LANGUAGE', 'english').lower()
+settings['timezone'] = os.environ.get('TIMEZONE', 'UTC')
+settings['command_prefix'] = os.environ.get('COMMAND_PREFIX', '!')
+settings['control_channel'] = os.environ.get('CONTROL_CHANNEL', 'peon')
 
 # Import relevant language file data
 language=os.environ.get('LANGUAGE', 'english').lower()
-txt_quotes = json.load(open(f"/app/reference/{language}/quotes.json", "r"))
-txt_commands = json.load(open(f"/app/reference/{language}/commands.json", "r"))
-txt_errors = json.load(open(f"/app/reference/{language}/errors.json", "r"))
+txt_quotes = json.load(open(f"/app/reference/{settings['language']}/quotes.json", "r"))
+txt_commands = json.load(open(f"/app/reference/{settings['language']}/commands.json", "r"))
+txt_errors = json.load(open(f"/app/reference/{settings['language']}/errors.json", "r"))
 
 # Create a random quote selector
 def get_quote():
