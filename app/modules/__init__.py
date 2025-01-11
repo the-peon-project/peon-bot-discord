@@ -53,13 +53,13 @@ def get_peon_orcs():
         logging.error(f"An error occurred: {e}")
         return {"status": "error", "info": str(e)}
 
-def identify_channel(channel_control,channel_request,args=tuple()):
-    if channel_request == channel_control:
+def identify_channel(channel_request,args=tuple()):
+    if channel_request == settings['control_channel']:
         permission='admin'
-        logging.debug(f" <control channel> - {channel_control}")
+        logging.debug(f" <control channel> - {settings['control_channel']}")
     else:
         permission='user'
-        logging.debug(f" <request channel> - {channel_request}")
+        logging.debug(f" <request channel> - {settings['control_channel']}")
         if args:
             args = tuple(channel_request.split('-'))[::-1] + args
         else:
