@@ -11,9 +11,10 @@ settings = json.load(open(f"/app/settings.json", 'r'))
 cmd_aliases = json.load(open(f"/app/reference/aliases.json", "r"))
 
 # Import relevant language file data
-txt_quotes = json.load(open(f"/app/reference/{settings['language'].lower()}/quotes.json", "r"))
-txt_commands = json.load(open(f"/app/reference/{settings['language'].lower()}/commands.json", "r"))
-txt_errors = json.load(open(f"/app/reference/{settings['language'].lower()}/errors.json", "r"))
+language=os.environ.get('LANGUAGE', 'english').lower()
+txt_quotes = json.load(open(f"/app/reference/{language}/quotes.json", "r"))
+txt_commands = json.load(open(f"/app/reference/{language}/commands.json", "r"))
+txt_errors = json.load(open(f"/app/reference/{language}/errors.json", "r"))
 
 # Create a random quote selector
 def get_quote():
