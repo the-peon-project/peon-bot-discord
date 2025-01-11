@@ -9,6 +9,7 @@ from discord.ext import commands
 from modules import *
 from modules.peon_orc_api import *
 from modules.shared import configure_logging
+import requests
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -57,17 +58,33 @@ async def poke(ctx):
 
 @bot.command(name='about')
 async def get_plans(ctx):
-    logging.debug("\'About\' requested")
-    response = "## [The PEON Project](https://warcamp.org)\n"
-    response += "> A community-driven project to provide a platform for hosting and managing game servers.  \n"
-    response += "The project is open-source and free to use.  \n"
-    response += "It is maintained by volunteers and donations.  \n\n"
-    response += "### Versions  \n"
-    response += f"Orchestrator: [UNKNOWN](https://docs.warcamp.org/development/01_orchestrator/)\n  "
-    response += f"Bot-Discord:  [{os.environ.get('VERSION','-.-.-')}](https://docs.warcamp.org/development/50_bot_discord/)\n  "
-    response += "### Supported Games  \n"
-    response += "Our [SUPPORTED GAMES](https://docs.warcamp.org/games/) list grows as we play new games and build new recipies.\n  "
-    response += "Please feel free to request a game [here](https://github.com/the-peon-project/peon-warplans/issues) or you can join us and develop your own ([START HERE](https://docs.warcamp.org/development/))"
+    logging.debug("'About' requested")
+    response = "## [The PEON Project](<https://warcamp.org>)\n"
+    response += "> A community-driven project to provide automated deployment and managing community game servers.\n\n"
+    response += "The project is open-source, free to use and is maintained by volunteers and donations.\n"
+    response += "### Versions\n"
+    response += f"Orchestrator: [-.-.-](<https://docs.warcamp.org/development/01_orchestrator/>)\n"
+    response += f"Bot-Discord: [{os.environ.get('VERSION', '-.-.-')}](<https://docs.warcamp.org/development/50_bot_discord/>)\n"
+    # Get the markdown from the URL and add it to the response
+    url = "https://raw.githubusercontent.com/the-peon-project/peon-docs/refs/heads/main/manual/docs/games.md"
+    try:
+        file_contents = requests.get(url).text
+        response += "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
+        for line in file_contents.splitlines():
+            if re.search('- \[x\]', line):
+                # Remove the checkbox
+                line = re.sub('- \[x\]', '- ', line)
+                line = re.sub('./guides/games/', 'https://docs.warcamp.org/guides/games/', line)
+                line = re.sub('.md', '', line)
+                response += line + '\n'
+        response += "To see which other game servers are currently being built go [here](<https://docs.warcamp.org/games>).\n"
+        response += "To request a different game server please log a request as an issue [here](<https://github.com/the-peon-project/peon-warplans/issues>).\n"
+        response += "### Bugs/Issues\nPlease log any bugs or issues [here](<https://github.com/the-peon-project/peon/issues>).\n"
+        response += "### Donations\nIf you would like to donate to the project please go [here](<https://ko-fi.com/umlatt>).\n"
+        response += "### Community\nJoin the community on [Discord](<https://discord.gg/KJFVyayH8g>)\n"
+        
+    except requests.RequestException as e:
+        logging.error(f"Failed to fetch file contents: {e}")
     await ctx.send(response)
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
