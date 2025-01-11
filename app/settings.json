@@ -1,7 +1,0 @@
-{
-    "timezone" : "Africa/Johannesburg",
-    "language" : "english",
-    "control_channel" : "peon",
-    "command_prefix" : "!",
-    "logo" : "https://raw.githubusercontent.com/the-peon-project/peon/main/media/PEON_sml.png"
-}
