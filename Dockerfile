@@ -4,7 +4,7 @@ FROM python:3.11-slim-bullseye
 LABEL "com.peon.description"="Peon Bot - Discord"
 LABEL "maintainer"="Umlatt <richard@lazylionconsulting.com>"
 # Copy "branding" stuff
-COPY ./media/banner /etc/motd
+COPY ./media/motd /etc/motd
 RUN echo "cat /etc/motd" >> /etc/bash.bashrc
 # Install python requirements
 COPY ./requirements.txt /app/requirements.txt
