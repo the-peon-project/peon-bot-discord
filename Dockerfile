@@ -16,6 +16,7 @@ RUN apt-get update && apt-get -y install ssh
 # TEMP: Install debug tools
 RUN apt-get update && apt-get -y install procps iputils-ping dnsutils vim
 # Configure version
+ENV CONTAINER_TYPE="bot.discord"
 ARG VERSION
 ENV VERSION=${VERSION}
 RUN echo VERSION=${VERSION} >> /etc/environment
