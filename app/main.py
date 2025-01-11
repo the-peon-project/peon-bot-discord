@@ -15,8 +15,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 # Settings
+games_url = "https://raw.githubusercontent.com/the-peon-project/peon-docs/refs/heads/main/manual/docs/games.md"
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
-control_channel=settings['control_channel']
 
 def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
     embed = discord.Embed(color=discord.Color.orange())
@@ -46,9 +46,8 @@ def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_ui
 async def on_ready():
     channels = bot.get_all_channels()
     for channel in channels:
-        if re.search('text', str(channel.category), re.IGNORECASE):
-            if re.search(control_channel, str(channel.name), re.IGNORECASE):
-                await channel.send(" has connected to the server.\n *Type ``!usage`` for furthur information*")
+        if settings['control_channel'] == str(channel.name):
+            await channel.send(" has connected to the server.")
     logging.info(f'[{bot.user.name}] has connected to Discord!')
 
 @bot.command(name='poke')
@@ -65,9 +64,8 @@ async def get_plans(ctx):
     response += "### Versions\n"
     response += f"Orchestrator: [-.-.-](<https://docs.warcamp.org/development/01_orchestrator/>)\n"
     response += f"Bot-Discord: [{os.environ.get('VERSION', '-.-.-')}](<https://docs.warcamp.org/development/50_bot_discord/>)\n"
-    url = "https://raw.githubusercontent.com/the-peon-project/peon-docs/refs/heads/main/manual/docs/games.md"
     try:
-        file_contents = requests.get(url).text
+        file_contents = requests.get(games_url).text
         response += "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
         for line in file_contents.splitlines():
             if re.search('- \[x\]', line):
@@ -82,25 +80,25 @@ async def get_plans(ctx):
         response += "### Community\nJoin the community on [Discord](<https://discord.gg/KJFVyayH8g>)\n"
         embed = discord.Embed(description=response)
         embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_outline_small.png")
-        await ctx.send(embed=embed)
     except requests.RequestException as e:
         logging.error(f"Failed to fetch file contents: {e}")
+        embed = build_card_err(err_code="bad.code",command="bad.code",permission='user')
+    finally:
+        await ctx.send(embed=embed)
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
-    logging.debug("Servers & hosts \'get\' requested")
-    if ctx.channel.name == control_channel:
-        if "success" in ( peon_orchestrators := get_peon_orcs())['status']:
-            response = get_servers_all(peon_orchestrators['data'])
-            await ctx.send(embed=build_card(title="All Servers",message=response['data']))
-        else:
-            await ctx.send(embed=build_card_err(err_code="orc.none",command="register",permission="admin"))
-    else:
-        await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission="user"))
+    args = identify_channel(channel_request=ctx.channel.name)
+    logging.debug(f"Servers & hosts GET requested - {args} ")
+    if args[0] == 'admin':
+        if "success" in ( peon_orchestrators := get_peon_orcs())['status']: embed = build_card(title="All Servers",message=get_servers_all(peon_orchestrators['data'])['data'])
+        else: embed=build_card_err(err_code="orc.none",command="register",permission='admin')
+    else: embed=build_card_err(err_code="unauthorized",command="auth",permission='user')
+    await ctx.send(embed=embed)
 
 @bot.command(name='get',aliases=cmd_aliases["get"])
 async def get(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
     logging.debug(f"Server GET requested - {args} ")
     if "success" in (response := server_actions('get', args))['status']: embed = build_card(title="Get Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
@@ -108,7 +106,7 @@ async def get(ctx, *args):
 
 @bot.command(name='start',aliases=cmd_aliases["start"])
 async def start(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
     logging.info(f"Server START requested - {args} ")
     if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
@@ -116,7 +114,7 @@ async def start(ctx, *args):
     
 @bot.command(name='update',aliases=cmd_aliases["update"])
 async def update(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
     logging.info(f"Server UPDATE requested - {args} ")
     if "success" in (response := server_actions('update', args))['status']: embed = build_card(title="Update Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
@@ -124,7 +122,7 @@ async def update(ctx, *args):
 
 @bot.command(name='stop',aliases=cmd_aliases["stop"])
 async def stop(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
     logging.info(f"Server STOP requested - {args} ")
     if "success" in (response := server_actions('stop', args))['status']: embed = build_card(title="Stop Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
@@ -132,7 +130,7 @@ async def stop(ctx, *args):
 
 @bot.command(name='restart',aliases=cmd_aliases["restart"])
 async def restart(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(cchannel_request=ctx.channel.name, args=args)
     logging.info(f"Server RESTART requested - {args} ")
     if "success" in (response := server_actions('restart', args))['status']: embed = build_card(title="Restart Server",message=response['data'])
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
@@ -140,7 +138,7 @@ async def restart(ctx, *args):
 
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name, args=args)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
     logging.info("Server REGISTRATION requested.")
     if len(args) != 3:
         response = "TODO" # error_message('parameterCount', 'register')
@@ -148,9 +146,8 @@ async def register(ctx, *args):
 
 @bot.command(name='usage',aliases=cmd_aliases["usage"])
 async def usage(ctx):
-    language = os.getenv("LANGUAGE","english")
-    args = identify_channel(channel_control=control_channel,channel_request=ctx.channel.name)
-    with open(f"/app/reference/{language}/commands.json", 'r') as file:
+    args = identify_channel(channel_request=ctx.channel.name)
+    with open(f"/app/reference/{settings['language']}/commands.json", 'r') as file:
         commands = json.load(file)
     response = ""
     for command, info in commands.items():
@@ -162,31 +159,22 @@ async def usage(ctx):
                 response += f"{info['note']}\n\n"
     embed = build_card(title="Usage Information",message=response)
     await ctx.send(embed=embed)
-
-@bot.command(name='clear',aliases=cmd_aliases["clear"])
-@commands.has_permissions(manage_messages=True)
-async def clear(ctx, amount: int):
-    if ctx.channel.name == control_channel:
-        await ctx.channel.purge(limit=amount + 1)
-        await ctx.send(f"{amount} message(s) got deleted")
-    else:
-        response = "TODO" # error_message('unauthorized', 'auth')
-        await ctx.send(response)
         
 @bot.command(name='plans')
 async def get_plans(ctx):
     logging.debug("All plans \'get\' requested")
-    if ctx.channel.name == control_channel:
-        if "success" in (peon_orchestrators := get_peon_orcs())['status']:
-            response = get_warplans(peon_orchestrators['data'])
-        else: response = "TODO" # error_message('none', 'register') # TODO
-    else: response = "TODO" # error_message('unauthorized', 'auth') # TODO
-    await ctx.send(response)
+    args = identify_channel(channel_request=ctx.channel.name)
+    if "success" in (peon_orchestrators := get_peon_orcs())['status']:
+        if "success" in (warplans := get_warplans(peon_orchestrators['data']))['status']:
+            embed = build_card(title="War Plans",message=warplans['data'])
+        else: embed = build_card_err(err_code="plans.dne",command="plans",permission=args[0])
+    else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
+    await ctx.send(embed=embed)
     
 @bot.command(name='plan')
 async def get_plan(ctx, *args):
     logging.debug("Plan 'get' requested")
-    if ctx.channel.name == control_channel:
+    if ctx.channel.name == settings['control_channel']:
         if "success" in (peon_orchestrators := get_peon_orcs())['status']:
             if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]:
                 embed = discord.Embed()
@@ -202,14 +190,23 @@ async def get_plan(ctx, *args):
         response = "TODO" # error_message('unauthorized', 'auth') # TODO
         await ctx.send(response)
 
+# Atypical structure
+@bot.command(name='clear',aliases=cmd_aliases["clear"])
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount: int):
+    args = identify_channel(channel_request=ctx.channel.name)
+    if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
+    else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
+
 # MAIN
 if __name__ == "__main__":
     # Configure logging
     configure_logging()
     # Get Discord token
+    print("\n------------------------------\nStarting Discord Bot...\n------------------------------\n")
     TOKEN = os.environ.get('DISCORD_TOKEN', None)
     if TOKEN:
-        logging.debug(bot.run(TOKEN))
+        bot.run(TOKEN)
     else:
         logging.error("Please create and configure a valid Discord token.")
         # Force a non-zero exit status
