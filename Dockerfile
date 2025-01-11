@@ -15,6 +15,10 @@ RUN pip3 install --no-cache-dir --upgrade -r /app/requirements.txt
 RUN apt-get update && apt-get -y install ssh
 # TEMP: Install debug tools
 RUN apt-get update && apt-get -y install procps iputils-ping dnsutils vim
+# Configure version
+ARG VERSION
+ENV VERSION=${VERSION}
+RUN echo VERSION=${VERSION} >> /etc/environment
 # Start the app called api
 COPY ./app /app
 # Move to working directory
