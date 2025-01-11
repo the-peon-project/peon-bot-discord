@@ -28,7 +28,7 @@ def get_warplans(peon_orchestrators):
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     plans = requests.get(url, headers=headers).json()
-    response = f"WARPLANS\n*The currently available warplans for your ochestrators.*\n```yaml"
+    response = f"*The currently available warplans for your ochestrators.*\n```yaml"
     response += "\n{0:<15} : {1}\n{2:<15} : {2}".format("game_uid","game","---")
     for plan in plans:
         response += "\n{0:<15} : {1}".format(plan['game_uid'],plan['title'])
