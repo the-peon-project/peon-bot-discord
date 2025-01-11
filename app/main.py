@@ -56,8 +56,6 @@ async def poke(ctx):
     logging.debug('Poke requested')
     await ctx.send(embed=build_card(image_url=settings['logo']))
 
-import discord
-
 @bot.command(name='about')
 async def get_plans(ctx):
     logging.debug("'About' requested")
@@ -87,7 +85,6 @@ async def get_plans(ctx):
         await ctx.send(embed=embed)
     except requests.RequestException as e:
         logging.error(f"Failed to fetch file contents: {e}")
-
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
