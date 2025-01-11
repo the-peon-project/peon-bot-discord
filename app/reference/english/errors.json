@@ -5,6 +5,7 @@
     "orc.dne": "There is no Warparty by that name, Warchief.",
     "srv.dne": "Orc cannot find that Warcamp, Warchief. Does it exist?",
     "srv.param": "You not give Orc enough information.",
+    "plans.dne": "Orc cannot find Warplans.",
     "plan.dne": "Orc cannot find Warplan for that kind of Warcamp.",
     "plan.param": "But you did not tell Orc which Warplan you wanted!?!",
     "srv.action.error": "Something bad happened when Orc tried to communicate with the Warcamp.",
