@@ -55,6 +55,21 @@ async def poke(ctx):
     logging.debug('Poke requested')
     await ctx.send(embed=build_card(image_url=settings['logo']))
 
+@bot.command(name='about')
+async def get_plans(ctx):
+    logging.debug("\'About\' requested")
+    response = "## [The PEON Project](https://warcamp.org)\n"
+    response += "> A community-driven project to provide a platform for hosting and managing game servers.  \n"
+    response += "The project is open-source and free to use.  \n"
+    response += "It is maintained by volunteers and donations.  \n\n"
+    response += "### Versions  \n"
+    response += f"Orchestrator: [UNKNOWN](https://docs.warcamp.org/development/01_orchestrator/)\n  "
+    response += f"Bot-Discord:  [{os.environ.get('VERSION','-.-.-')}](https://docs.warcamp.org/development/50_bot_discord/)\n  "
+    response += "### Supported Games  \n"
+    response += "Our [SUPPORTED GAMES](https://docs.warcamp.org/games/) list grows as we play new games and build new recipies.\n  "
+    response += "Please feel free to request a game [here](https://github.com/the-peon-project/peon-warplans/issues) or you can join us and develop your own ([START HERE](https://docs.warcamp.org/development/))"
+    await ctx.send(response)
+
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
     logging.debug("Servers & hosts \'get\' requested")
