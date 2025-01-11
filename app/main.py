@@ -50,6 +50,13 @@ async def on_ready():
             await channel.send(" has connected to the server.")
     logging.info(f'[{bot.user.name}] has connected to Discord!')
 
+@bot.command(name='clear',aliases=cmd_aliases["clear"])
+@commands.has_permissions(manage_messages=True)
+async def clear(ctx, amount: int):
+    args = identify_channel(channel_request=ctx.channel.name)
+    if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
+    else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
+
 @bot.command(name='poke')
 async def poke(ctx):
     logging.debug('Poke requested')
@@ -136,14 +143,6 @@ async def restart(ctx, *args):
     else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
     await ctx.send(embed=embed)
 
-@bot.command(name='register',aliases=cmd_aliases["register"])
-async def register(ctx, *args):
-    args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Server REGISTRATION requested.")
-    if len(args) != 3:
-        response = "TODO" # error_message('parameterCount', 'register')
-        await ctx.send(response)
-
 @bot.command(name='usage',aliases=cmd_aliases["usage"])
 async def usage(ctx):
     args = identify_channel(channel_request=ctx.channel.name)
@@ -170,33 +169,38 @@ async def get_plans(ctx):
         else: embed = build_card_err(err_code="plans.dne",command="plans",permission=args[0])
     else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
     await ctx.send(embed=embed)
-    
+
+
+# TODO: --- Start ---------------------------------
+
 @bot.command(name='plan')
 async def get_plan(ctx, *args):
-    logging.debug("Plan 'get' requested")
-    if ctx.channel.name == settings['control_channel']:
-        if "success" in (peon_orchestrators := get_peon_orcs())['status']:
-            if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]:
-                embed = discord.Embed()
-                embed.set_thumbnail(url=response['image_url'])
-                embed.add_field(name='WARPLAN', value=response['message'])
-                await ctx.send(embed=embed)
-            else:
-                await ctx.send(response['message'])
-        else:
-            response = "TODO" #error_message('none', 'register') # TODO
-            await ctx.send(response)
-    else:
-        response = "TODO" # error_message('unauthorized', 'auth') # TODO
-        await ctx.send(response)
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
+    logging.debug(f"Plan GET requested - {args}")
+    # Check if more than one argument is passed
+    if len(args) > 1:
+        if args[0] == 'admin':
+            if "success" in (peon_orchestrators := get_peon_orcs())['status']:
+                if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]:
+                    embed = discord.Embed()
+                    embed.set_thumbnail(url=response['image_url'])
+                    embed.add_field(name='WARPLAN', value=response['message'])
+                else: embed = build_card_err(err_code="plan.dne",command="plans",permission=f'{args[0]}')
+            else: embed = build_card_err(err_code="orc.none",command="register",permission=f'{args[0]}')
+        else: embed = build_card_err(err_code="unauthorized",command="auth",permission=f'{args[0]}')
+    else: embed = build_card_err(err_code="srv.param",command="plan",permission=args[0])
+    await ctx.send(embed=embed)
 
-# Atypical structure
-@bot.command(name='clear',aliases=cmd_aliases["clear"])
-@commands.has_permissions(manage_messages=True)
-async def clear(ctx, amount: int):
-    args = identify_channel(channel_request=ctx.channel.name)
-    if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
-    else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
+@bot.command(name='register',aliases=cmd_aliases["register"])
+async def register(ctx, *args):
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
+    logging.info("Server REGISTRATION requested.")
+    if len(args) != 3:
+        response = "TODO" # error_message('parameterCount', 'register')
+        embed = response
+    await ctx.send(embed=embed)
+
+# TODO: --- End ---------------------------------
 
 # MAIN
 if __name__ == "__main__":
