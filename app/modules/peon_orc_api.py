@@ -35,17 +35,15 @@ def get_warplans(peon_orchestrators):
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
 
-def get_warplan(peon_orchestrators,args):
+def get_warplan(peon_orchestrators,game_uid):
     logging.debug('[get_plans]')
-    if len(args) < 1:
-        return { "status" : "error", "err_code" : "plan.param", "command" : "plan"}
-    url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{args[0]}"
+    url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{game_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
-    response = requests.get(url, headers=headers)
-    if response.status_code != 200: return { "status" : "error", "err_code" : "plan.dne", "command" : "plan"}
-    plan = response.json()
-    response += f"*Warplan takes the following settings.*\n```yaml"
-    for key, value in plan.items():
+    plan = requests.get(url, headers=headers)
+    if (plan := requests.get(url, headers=headers)).status_code != 200: 
+        return { "status" : "error", "err_code" : "plan.dne", "command" : "plan"}
+    response = f"*Warplan takes the following settings.*\n```json"
+    for key, value in plan.json().items():
         response += "\n{0:<15} : {1}".format(key,value)
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
