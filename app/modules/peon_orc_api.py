@@ -101,7 +101,7 @@ def server_actions(action,args):
                 server['orchestrator'] = orchestrator['name'].lower()
             server_list.extend(servers)
         except:
-            logging.warn(f"Host {orchestrator} is unavailable.")
+            logging.warning(f"Host {orchestrator} is unavailable.")
     if len(server_list) == 0: return { "status" : "error", "err_code" : "orc.notavailable", "command" : action}
     # STEP 4: Try and find server with remaining arg/s
     matched_server_list = []
@@ -109,6 +109,7 @@ def server_actions(action,args):
         arg_servername = look_for_regex_in_args(server['servername'].lower(),args)
         if arg_servername:
             matched_server_list.append(server)
+            args.remove(arg_servername)
             break
     if len(matched_server_list) == 0: return { "status" : "error", "err_code" : "srv.dne", "command" : action}
     elif len(matched_server_list) > 1:
@@ -118,6 +119,7 @@ def server_actions(action,args):
             arg_gameuid = look_for_regex_in_args(server['game_uid'].lower(),args)
             if arg_gameuid:
                 matched_server_list.append(server)
+                args.remove(arg_gameuid)
                 break
     if len(matched_server_list) == 0: return { "status" : "error", "err_code" : "srv.dne", "command" : action}
     elif len(matched_server_list) > 1:
@@ -127,6 +129,7 @@ def server_actions(action,args):
             arg_orchestrator = look_for_regex_in_args(server['orchestrator'].lower(),args)
             if arg_orchestrator:
                 matched_server_list.append(server)
+                args.remove(arg_orchestrator)
                 break
     if len(matched_server_list) == 0: return { "status" : "error", "err_code" : "srv.dne", "command" : action}
     elif len(matched_server_list) > 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
@@ -183,5 +186,8 @@ def server_actions(action,args):
             elif arg_interval:
                 timer = { "interval" : f"{arg_interval}" }
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down in ``{arg_interval}``."
-            server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
-        return { "status" : "success", "data" : f"{response}" }
+            if len(args) == 1: # Only the permissions arg should be left
+                server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
+            else:
+                response = { "status" : "error", "err_code" : "srv.input", "command" : action}
+        return { "status" : "success", "data" : f"{response}", "stop_time" : None }
