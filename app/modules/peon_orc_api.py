@@ -193,5 +193,5 @@ def server_actions(action,args):
             if len(args) == 1: # Only the permissions arg should be left
                 server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
             else:
-                response = { "status" : "error", "err_code" : "srv.input", "command" : action}
+                return { "status" : "error", "err_code" : "srv.input", "command" : action}
         return { "status" : "success", "data" : f"{response}", "stop_time" : None }
