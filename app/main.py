@@ -65,33 +65,25 @@ async def poke(ctx):
 @bot.command(name='about')
 async def get_plans(ctx):
     logging.debug("'About' requested")
-    response = "## [The PEON Project](<https://warcamp.org>)\n"
-    response += "> A community-driven project to provide automated deployment and managing community game servers.\n\n"
-    response += "The project is open-source, free to use and is maintained by volunteers and donations.\n"
-    response += "### Versions\n"
-    response += f"Orchestrator: [-.-.-](<https://docs.warcamp.org/development/01_orchestrator/>)\n"
-    response += f"Bot-Discord: [{os.environ.get('VERSION', '-.-.-')}](<https://docs.warcamp.org/development/50_bot_discord/>)\n"
+    with open("/app/about.md", "r") as file:
+        response = file.read()
+    response = response.replace('[ORC_VERSION]','-.-.-')
+    response = response.replace('[BOT_VERSION]',os.environ.get('VERSION', '-.-.-'))
     try:
         file_contents = requests.get(games_url).text
-        response += "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
+        servers = "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
         for line in file_contents.splitlines():
             if re.search('- \[x\]', line):
                 line = re.sub('- \[x\]', '- ', line)
                 line = re.sub('./guides/games/', 'https://docs.warcamp.org/guides/games/', line)
                 line = re.sub('.md', '', line)
-                response += line + '\n'
-        response += "To see which other game servers are currently being built go [here](<https://docs.warcamp.org/games>).\n"
-        response += "To request a different game server please log a request as an issue [here](<https://github.com/the-peon-project/peon-warplans/issues>).\n"
-        response += "### Bugs/Issues\nPlease log any bugs or issues [here](<https://github.com/the-peon-project/peon/issues>).\n"
-        response += "### Donations\nIf you would like to donate to the project please go [here](<https://ko-fi.com/umlatt>).\n"
-        response += "### Community\nJoin the community on [Discord](<https://discord.gg/KJFVyayH8g>)\n"
-        embed = discord.Embed(description=response)
-        embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_outline_small.png")
-    except requests.RequestException as e:
-        logging.error(f"Failed to fetch file contents: {e}")
-        embed = build_card_err(err_code="bad.code",command="bad.code",permission='user')
-    finally:
-        await ctx.send(embed=embed)
+                servers += line + '\n'
+    except:
+        servers = ""
+    response = response.replace('[GAME_SERVERS]',servers)
+    embed = discord.Embed(description=response)
+    embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_outline_small.png") 
+    await ctx.send(embed=embed)
 
 @bot.command(name='getall',aliases=cmd_aliases["getall"])
 async def get_all(ctx):
