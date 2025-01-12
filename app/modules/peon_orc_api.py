@@ -154,23 +154,26 @@ def server_actions(action,args):
     else:
         response =f"Orc **{action}** warcamp **{server['servername']}** in {orchestrator['name'].upper()}."
         if action == 'get':
-            response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n".format("Warcamp",data["servername"],"Type",data['game_uid'],"Peon State",(data["server_state"].lower()),"Description",data["description"])
-            try:
-                if data['server_config']:
-                    response += "---\n"
-                    config_dict = data['server_config']
-                    for key,value in config_dict.items():
-                        response += "{0:<15}: {1}\n".format(key.title(),value)
-            except:
-                response += f"---\n{data['server_config']}\n"
-            response += "```"
-            if data["time"]:
+            if "time" not in args:
+                response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n".format("Warcamp",data["servername"],"Type",data['game_uid'],"Peon State",(data["server_state"].lower()),"Description",data["description"])
+                try:
+                    if data['server_config']:
+                        response += "---\n"
+                        config_dict = data['server_config']
+                        for key,value in config_dict.items():
+                            response += "{0:<15}: {1}\n".format(key.title(),value)
+                except:
+                    response += f"---\n{data['server_config']}\n"
+                response += "```"
+            if data["time"] or data["server_state"].lower() != 'exited':
                 today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
                 stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
                 response += "\n\t:alarm_clock: Orc will turn off server at ``"
                 if str(today.date()) == str(stoptime.date()): response += stoptime.strftime("%X %Z")
                 else: response += stoptime.strftime("%X %Z [%x]")
                 response += "``"
+            else:
+                response += "\n\t:alarm_clock: Orc has no shutdown schedule."
         else:
             timer = {}
             if arg_time:
@@ -200,4 +203,4 @@ def server_actions(action,args):
                 server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
             else:
                 return { "status" : "error", "err_code" : "srv.input", "command" : action}
-        return { "status" : "success", "data" : f"{response}", "stop_time" : None }
+        return { "status" : "success", "data" : f"{response}" }
