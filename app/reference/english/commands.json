@@ -76,5 +76,11 @@
         "user": null,
         "admin": null,
         "symbol": ":no_entry_sign:"
+    },
+    "about": {
+        "note": "Read the about for PEON (and see software versions).",
+        "user": "!about",
+        "admin": "!about",
+        "symbol": ":speech_balloon:"
     }
 }
