@@ -9,6 +9,7 @@
     "plan.dne": "Orc cannot find Warplan for that kind of Warcamp.",
     "plan.param": "But you did not tell Orc which Warplan you wanted!?!",
     "srv.action.error": "Something bad happened when Orc tried to communicate with the Warcamp.",
+    "srv.input": "You confuse Orc with too many words.",
     "schedule.past": "Can't being doing that. Orc does not know how to time-travel.",
     "bad.code": "Me not sure what happened. Orc never had lessons for this situation.",
     "unauthorized": "You not tell Orc what to do. Only Warchief tell Orc what to do."
