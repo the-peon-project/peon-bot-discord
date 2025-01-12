@@ -68,8 +68,14 @@ async def get_plans(ctx):
     logging.debug("'About' requested")
     with open("/app/about.md", "r") as file:
         response = file.read()
-    response = response.replace('[ORC_VERSION]','-.-.-')
     response = response.replace('[BOT_VERSION]',os.environ.get('VERSION', '-.-.-'))
+    if (orchestrators := get_peon_orcs())['status'] == "success":
+        if orchestrators['data']:
+            orcstring = ""
+            for orc in orchestrators['data']:
+                info = get_orchestrator_details(url=orc['url'],api_key=orc['key'])
+                orcstring += f"- Orchestrator: {orc['name']} [{info['version']}](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)"
+            response = response.replace('[ORCHESTRATORS]',f"{orcstring}")
     try:
         file_contents = requests.get(games_url).text
         servers = "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
