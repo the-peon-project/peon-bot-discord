@@ -66,7 +66,7 @@ async def poke(ctx):
 @bot.command(name='about')
 async def get_plans(ctx):
     logging.debug("'About' requested")
-    with open("/app/about.md", "r") as file:
+    with open(f"/app/reference/{settings['language']}/about.md", "r") as file:
         response = file.read()
     response = response.replace('[BOT_VERSION]',os.environ.get('VERSION', '-.-.-'))
     if (orchestrators := get_peon_orcs())['status'] == "success":
