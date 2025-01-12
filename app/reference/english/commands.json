@@ -7,8 +7,8 @@
     },
     "get": {
         "note": "Get a specific game server's details.",
-        "user": "!get",
-        "admin": "!get servername gameuid* orchestrator*",
+        "user": "!get time*",
+        "admin": "!get time* <servername> <gameuid*> <orchestrator*>",
         "symbol": ":tent:"
     },
     "getall": {
@@ -20,7 +20,7 @@
     "plan": {
         "note": "Get the requirements for a specific game plan.",
         "user": null,
-        "admin": "!plan gameuid",
+        "admin": "!plan <gameuid>",
         "symbol": ":scroll:"
     },
     "plans": {
@@ -32,19 +32,19 @@
     "register": {
         "note": "Register an Orchestrator as a usable host.",
         "user": null,
-        "admin": "!register uniqueName orchestratorUrl:port apiKey",
+        "admin": "!register <uniqueName> <orchestratorUrl>:<port> <apiKey>",
         "symbol": ":pick:"
     },
     "start": {
         "note": "Start a game server (Optionally adding a duration/shutdown time for the game session).",
-        "user": "!start session_duration* autostop_time*",
-        "admin": "!start servername gameuid* orchestrator* session_duration* autostop_time*",
+        "user": "!start <session_duration*> <autostop_time*>",
+        "admin": "!start <servername> <gameuid*> <orchestrator*> <session_duration*> <autostop_time*>",
         "symbol": ":white_check_mark:"
     },
     "stop": {
         "note": "Stop a game server (Optionally, delay the stop by a specific duration/to a specific time).",
-        "user": "!stop session_duration* shutoff_time*",
-        "admin": "!stop servername gameuid* orchestrator* session_duration* autostop_time*",
+        "user": "!stop <session_duration*> <shutoff_time*>",
+        "admin": "!stop <servername> <gameuid*> <orchestrator*> <session_duration*> <autostop_time*>",
         "symbol": ":stop_sign:"
     },
     "update": {
@@ -56,7 +56,7 @@
     "restart": {
         "note": "Restart a game server.",
         "user": "!restart",
-        "admin": "!restart servername gameuid* orchestrator*",
+        "admin": "!restart <servername> <gameuid*> <orchestrator*>",
         "symbol": ":recycle:"
     },
     "usage": {
