@@ -15,7 +15,8 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 # Settings
-games_url = "https://raw.githubusercontent.com/the-peon-project/peon-docs/refs/heads/main/manual/docs/games.md"
+base_url = "https://raw.githubusercontent.com/the-peon-project"
+games_url = f"{base_url}/peon-docs/refs/heads/main/manual/docs/games.md"
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
 def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
@@ -39,7 +40,7 @@ def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_ui
     elif thumbnail_url:
         embed.set_thumbnail(url=thumbnail_url)
     elif game_uid:
-        embed.set_image(url=f"https://raw.githubusercontent.com/the-peon-project/peon-warplans/main/{game_uid}/logo.png")
+        embed.set_image(url=f"{base_url}/peon-warplans/main/{game_uid}/logo.png")
     return embed
 
 @bot.event
@@ -163,8 +164,6 @@ async def get_plans(ctx):
     await ctx.send(embed=embed)
 
 
-# TODO: --- Start ---------------------------------
-
 @bot.command(name='plan')
 async def get_plan(ctx, *args):
     args = identify_channel(channel_request=ctx.channel.name, args=args)
@@ -173,15 +172,15 @@ async def get_plan(ctx, *args):
     if len(args) > 1:
         if args[0] == 'admin':
             if "success" in (peon_orchestrators := get_peon_orcs())['status']:
-                if "success" in (response := get_warplan(peon_orchestrators['data'], args))["status"]:
-                    embed = discord.Embed()
-                    embed.set_thumbnail(url=response['image_url'])
-                    embed.add_field(name='WARPLAN', value=response['message'])
+                if "success" in (response := get_warplan(peon_orchestrators['data'], args[1]))["status"]:
+                    embed = build_card(title="War Plan",message=response['data'],game_uid=args[1])
                 else: embed = build_card_err(err_code="plan.dne",command="plans",permission=f'{args[0]}')
             else: embed = build_card_err(err_code="orc.none",command="register",permission=f'{args[0]}')
         else: embed = build_card_err(err_code="unauthorized",command="auth",permission=f'{args[0]}')
     else: embed = build_card_err(err_code="srv.param",command="plan",permission=args[0])
     await ctx.send(embed=embed)
+
+# TODO: --- Start ---------------------------------
 
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
