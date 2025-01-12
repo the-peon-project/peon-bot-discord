@@ -155,7 +155,13 @@ def server_actions(action,args):
         response =f"Orc **{action}** warcamp **{server['servername']}** in {orchestrator['name'].upper()}."
         if action == 'get':
             if "time" not in args:
-                response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n".format("Warcamp",data["servername"],"Type",data['game_uid'],"Peon State",(data["server_state"].lower()),"Description",data["description"])
+                response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n{8:<15}: {9}\n".format(
+                    "Warcamp",data["servername"],
+                    "Type",data['game_uid'],
+                    "Peon State",(data["server_state"].lower()),
+                    "Server Type",f"{data['container_type']}:{data['build_version']}",
+                    "Description",data["description"]
+                    )
                 try:
                     if data['server_config']:
                         response += "---\n"
