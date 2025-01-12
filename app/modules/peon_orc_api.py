@@ -6,6 +6,12 @@ import requests
 from modules import get_peon_orcs, settings
 import re
 
+def get_orchestrator_details(url, api_key):
+    logging.debug('[get_orchestrator_details]')
+    url = f"{url}/api/v1/orchestrator"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    return (requests.get(url, headers=headers)).json()
+
 # Services Get users in a certain group
 def get_servers(url, api_key):
     logging.debug('[get_servers]')
