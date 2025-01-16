@@ -188,6 +188,17 @@ async def get_plan(ctx, *args):
 
 # TODO: --- Start ---------------------------------
 
+@bot.command(name='import')
+async def get_plans(ctx):
+    logging.debug("Server/s import requested")
+    args = identify_channel(channel_request=ctx.channel.name)
+    if "success" in (peon_orchestrators := get_peon_orcs())['status']:
+        if "success" in (warcamps := import_warcamps(peon_orchestrators['data']))['status']:
+            embed = build_card(title="War Camps",message=warcamps['data'])
+        else: embed = build_card_err(err_code="orc.notavailable",command="import",permission=args[0])
+    else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
+    await ctx.send(embed=embed)
+
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
     args = identify_channel(channel_request=ctx.channel.name, args=args)
