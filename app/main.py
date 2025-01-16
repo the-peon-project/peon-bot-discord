@@ -170,7 +170,6 @@ async def get_plans(ctx):
     else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
     await ctx.send(embed=embed)
 
-
 @bot.command(name='plan')
 async def get_plan(ctx, *args):
     args = identify_channel(channel_request=ctx.channel.name, args=args)
@@ -187,8 +186,6 @@ async def get_plan(ctx, *args):
     else: embed = build_card_err(err_code="srv.param",command="plan",permission=args[0])
     await ctx.send(embed=embed)
 
-# TODO: --- Start ---------------------------------
-
 @bot.command(name='import')
 async def get_plans(ctx):
     logging.debug("Server/s import requested")
@@ -200,6 +197,8 @@ async def get_plans(ctx):
         else: embed = build_card_err(err_code="orc.notavailable",command="import",permission=args[0])
     else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
     await ctx.send(embed=embed)
+    
+# TODO: --- Start ---------------------------------
 
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
