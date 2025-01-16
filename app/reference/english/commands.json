@@ -1,18 +1,18 @@
 {
     "poke": {
-        "note": "Test that Peon Discord bot is available.",
+        "note": "Test the bot.",
         "user": "!poke",
         "admin": "!poke",
         "symbol": ":point_up:"
     },
     "get": {
-        "note": "Get a specific game server's details.",
+        "note": "Get a game server's details.",
         "user": "!get time*",
         "admin": "!get time* <servername> <gameuid*> <orchestrator*>",
         "symbol": ":tent:"
     },
     "getall": {
-        "note": "Get a list of all hosts and servers on those hosts.",
+        "note": "View all registered servers.",
         "user": null,
         "admin": "!getall",
         "symbol": ":european_castle:"
@@ -24,37 +24,43 @@
         "symbol": ":scroll:"
     },
     "plans": {
-        "note": "Get a list of available game server recipes.",
+        "note": "Get available game recipes",
         "user": "!plans",
         "admin": "!plans",
         "symbol": ":books:"
     },
     "register": {
-        "note": "Register an Orchestrator as a usable host.",
+        "note": "Register an Orchestrator.",
         "user": null,
         "admin": "!register <uniqueName> <orchestratorUrl>:<port> <apiKey>",
         "symbol": ":pick:"
     },
+    "import": {
+        "note": "Import all warcamps.",
+        "user": null,
+        "admin": "!import",
+        "symbol": ":crossed_swords:"
+    },
     "start": {
-        "note": "Start a game server (Optionally adding a duration/shutdown time for the game session).",
+        "note": "Start a server (*optional duration/stop time).",
         "user": "!start <session_duration*> <autostop_time*>",
         "admin": "!start <servername> <gameuid*> <orchestrator*> <session_duration*> <autostop_time*>",
         "symbol": ":white_check_mark:"
     },
     "stop": {
-        "note": "Stop a game server (Optionally, delay the stop by a specific duration/to a specific time).",
+        "note": "Stop a server (*optional duration/stop time).",
         "user": "!stop <session_duration*> <shutoff_time*>",
         "admin": "!stop <servername> <gameuid*> <orchestrator*> <session_duration*> <autostop_time*>",
         "symbol": ":stop_sign:"
     },
     "update": {
-        "note": "Update the game server files (will automatically stop/start the server).",
+        "note": "Update a server (will stop/start server).",
         "user": "!update",
         "admin": "!update",
         "symbol": ":tools:"
     },
     "restart": {
-        "note": "Restart a game server.",
+        "note": "Restart a server.",
         "user": "!restart",
         "admin": "!restart <servername> <gameuid*> <orchestrator*>",
         "symbol": ":recycle:"
@@ -66,19 +72,19 @@
         "symbol": ":information_source:"
     },
     "bad.code": {
-        "note": "Please consider logging a ticket with the developer. Visit: https://github.com/the-peon-project/peon-bot-discord/issues/new/choose",
+        "note": "Please consider logging a ticket @ https://github.com/the-peon-project/peon-bot-discord/issues/new/choose",
         "user": null,
         "admin": null,
         "symbol": ":pirate_flag:"
     },
     "auth" : {
-        "note": "This channel is not authorized to run this command.",
+        "note": "Channel not authorized for this command.",
         "user": null,
         "admin": null,
         "symbol": ":no_entry_sign:"
     },
     "about": {
-        "note": "Read the about for PEON (and see software versions).",
+        "note": "PEON general information (and software versions).",
         "user": "!about",
         "admin": "!about",
         "symbol": ":speech_balloon:"
