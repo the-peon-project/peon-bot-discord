@@ -54,6 +54,28 @@ def get_warplan(peon_orchestrators,game_uid):
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
 
+def import_warcamps(peon_orchestrators):
+    logging.debug('[import_warcamps]')
+    warcamps={}
+    #try:
+    for orchestrator in peon_orchestrators:
+        url = f"{orchestrator['url']}/api/v1/servers"
+        headers = { 'Accept': 'application/json', 'X-Api-Key': orchestrator['key'] }  
+        response = requests.put(url, headers=headers)
+        if response.status_code != 200:
+            warcamps[orchestrator['name']] = {}
+        else:
+            warcamps[orchestrator['name']] = response.json()
+    if not warcamps: return { "status" : "error", "err_code" : "orc.notavailable", "command" : "import"}
+    reponse_warcamps = {}
+    for orc, servers in warcamps.items():
+        response_string = f"Orc {orc.upper()} has the following warcamps.\n```yaml"
+        for server in servers:
+            response_string += "\n{0:<15} : {1}".format(server['game_uid'],server['servername'])
+        response_string += "\n```"
+        reponse_warcamps[orc] = response_string
+    return { "status" : "success", "data" : reponse_warcamps }
+
 def look_for_regex_in_args(regex,args):
     try:
         for argument in args:
