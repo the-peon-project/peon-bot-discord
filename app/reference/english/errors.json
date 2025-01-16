@@ -7,6 +7,7 @@
     "srv.dne": "Orc cannot find that Warcamp, Warchief. Does it exist?",
     "srv.notexplicit": "Orc needs to know exactly which server you want to conquer. Too many options",
     "srv.param": "You not give Orc enough information.",
+    "plan.update": "Orc could not get the latest Warplans from the Horde.",
     "plans.dne": "Orc cannot find Warplans.",
     "plan.dne": "Orc cannot find Warplan for that kind of Warcamp.",
     "plan.param": "But you did not tell Orc which Warplan you wanted!?!",

@@ -158,7 +158,20 @@ async def usage(ctx):
                 response += f"{info['note']}\n\n"
     embed = build_card(title="Usage Information",message=response)
     await ctx.send(embed=embed)
-        
+
+@bot.command(name='refresh')
+async def get_plans(ctx):
+    logging.debug("Update the plans accorss all orchestrated servers")
+    args = identify_channel(channel_request=ctx.channel.name)
+    if "success" in (peon_orchestrators := get_peon_orcs())['status']:
+        if "success" in (response := refresh_warplans(peon_orchestrators['data']))['status']:
+            if "success" in (warplans := get_warplans(peon_orchestrators['data']))['status']:
+                embed = build_card(title="War Plans Updated",message=warplans['data'])
+            else: embed = build_card_err(err_code="plans.dne",command="plans",permission=args[0])
+        else: build_card_err(err_code=response['err_code'],command="refresh",permission=args[0])
+    else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
+    await ctx.send(embed=embed)
+
 @bot.command(name='plans')
 async def get_plans(ctx):
     logging.debug("All plans \'get\' requested")

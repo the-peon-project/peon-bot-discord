@@ -50,6 +50,16 @@ def import_warcamps(peon_orchestrators):
         reponse_warcamps[orc] = response_string
     return { "status" : "success", "data" : reponse_warcamps }
 
+def refresh_warplans(peon_orchestrators):
+    logging.debug('[get_plans]')
+    url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
+    response = requests.put(url, headers=headers)
+    if response.status_code != 200:
+        return { "status" : "error", "err_code" : "plan.update", "command" : "refresh"}
+    else:
+        return { "status" : "success"}
+    
 def get_warplans(peon_orchestrators):
     logging.debug('[get_plans]')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"

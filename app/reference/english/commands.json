@@ -35,6 +35,18 @@
         "admin": "!register <uniqueName> <orchestratorUrl>:<port> <apiKey>",
         "symbol": ":pick:"
     },
+    "unregister": {
+        "note": "Register an Orchestrator.",
+        "user": null,
+        "admin": "!unregister <uniqueName>",
+        "symbol": ":fire:"
+    },
+    "refresh": {
+        "note": "Pull the latest available game plans for PEON",
+        "user": "",
+        "admin": "!refresh",
+        "symbol": ":construction_site:"
+    },
     "import": {
         "note": "Import all warcamps.",
         "user": null,
