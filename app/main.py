@@ -194,7 +194,6 @@ async def get_plans(ctx):
     args = identify_channel(channel_request=ctx.channel.name)
     if "success" in (peon_orchestrators := get_peon_orcs())['status']:
         if "success" in (warcamps := import_warcamps(peon_orchestrators['data']))['status']:
-            logging.critical(f"{warcamps}")
             for orc,warcamps in warcamps['data'].items():
                 embed = build_card(title=f"{orc.upper()}",message=warcamps)
         else: embed = build_card_err(err_code="orc.notavailable",command="import",permission=args[0])
