@@ -53,23 +53,29 @@
         "admin": "!stop <servername> <gameuid*> <orchestrator*> <session_duration*> <autostop_time*>",
         "symbol": ":stop_sign:"
     },
-    "update": {
-        "note": "Update a server (will stop/start server).",
-        "user": "!update",
-        "admin": "!update",
-        "symbol": ":tools:"
-    },
     "restart": {
         "note": "Restart a server.",
         "user": "!restart",
         "admin": "!restart <servername> <gameuid*> <orchestrator*>",
         "symbol": ":recycle:"
     },
+    "update": {
+        "note": "Update a server (will stop/start server).",
+        "user": "!update",
+        "admin": "!update",
+        "symbol": ":tools:"
+    },
     "usage": {
         "note": "How to use the Peon Discord bot.",
         "user": "!usage",
         "admin": "!usage",
         "symbol": ":information_source:"
+    },
+    "about": {
+        "note": "PEON general information (and software versions).",
+        "user": "!about",
+        "admin": "!about",
+        "symbol": ":speech_balloon:"
     },
     "bad.code": {
         "note": "Please consider logging a ticket @ https://github.com/the-peon-project/peon-bot-discord/issues/new/choose",
@@ -82,11 +88,5 @@
         "user": null,
         "admin": null,
         "symbol": ":no_entry_sign:"
-    },
-    "about": {
-        "note": "PEON general information (and software versions).",
-        "user": "!about",
-        "admin": "!about",
-        "symbol": ":speech_balloon:"
     }
 }
