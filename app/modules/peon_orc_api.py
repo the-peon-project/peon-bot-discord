@@ -22,12 +22,33 @@ def get_servers(url, api_key):
 def get_servers_all(peon_orchestrators):
     response=""
     for orchestrator in peon_orchestrators:
-        response += f"{orchestrator['name'].upper()}\n```yaml"
+        response += f"The warcamp/s on {orchestrator['name'].upper()} are in the current state/s\n```yaml"
         for server in get_servers(orchestrator['url'], orchestrator['key']):
             server_uid = f"{server['game_uid']}.{server['servername']}"
             response += "\n{0:<25} : {1}".format(server_uid,server['container_state'])
         response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
+
+def import_warcamps(peon_orchestrators):
+    logging.debug('[import_warcamps]')
+    warcamps={}
+    for orchestrator in peon_orchestrators:
+        url = f"{orchestrator['url']}/api/v1/servers"
+        headers = { 'Accept': 'application/json', 'X-Api-Key': orchestrator['key'] }  
+        response = requests.put(url, headers=headers)
+        if response.status_code != 200:
+            warcamps[orchestrator['name']] = {}
+        else:
+            warcamps[orchestrator['name']] = response.json()
+    if not warcamps: return { "status" : "error", "err_code" : "orc.notavailable", "command" : "import"}
+    reponse_warcamps = {}
+    for orc, servers in warcamps.items():
+        response_string = f"Orc {orc.upper()} now has the following warcamps.\n```yaml"
+        for server in servers:
+            response_string += "\n{0:<15} : {1}".format(server['game_uid'],server['servername'])
+        response_string += "\n```"
+        reponse_warcamps[orc] = response_string
+    return { "status" : "success", "data" : reponse_warcamps }
 
 def get_warplans(peon_orchestrators):
     logging.debug('[get_plans]')
@@ -53,28 +74,6 @@ def get_warplan(peon_orchestrators,game_uid):
         response += "\n{0:<15} : {1}".format(key,value)
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
-
-def import_warcamps(peon_orchestrators):
-    logging.debug('[import_warcamps]')
-    warcamps={}
-    #try:
-    for orchestrator in peon_orchestrators:
-        url = f"{orchestrator['url']}/api/v1/servers"
-        headers = { 'Accept': 'application/json', 'X-Api-Key': orchestrator['key'] }  
-        response = requests.put(url, headers=headers)
-        if response.status_code != 200:
-            warcamps[orchestrator['name']] = {}
-        else:
-            warcamps[orchestrator['name']] = response.json()
-    if not warcamps: return { "status" : "error", "err_code" : "orc.notavailable", "command" : "import"}
-    reponse_warcamps = {}
-    for orc, servers in warcamps.items():
-        response_string = f"Orc {orc.upper()} has the following warcamps.\n```yaml"
-        for server in servers:
-            response_string += "\n{0:<15} : {1}".format(server['game_uid'],server['servername'])
-        response_string += "\n```"
-        reponse_warcamps[orc] = response_string
-    return { "status" : "success", "data" : reponse_warcamps }
 
 def look_for_regex_in_args(regex,args):
     try:
