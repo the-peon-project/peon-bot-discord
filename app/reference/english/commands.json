@@ -77,6 +77,12 @@
         "admin": "!about",
         "symbol": ":speech_balloon:"
     },
+    "~admin": {
+        "note": "You need an admin role to do what you're trying to do.",
+        "user": "Speak to a the peon-bot admin.",
+        "admin": "!stop",
+        "symbol": ":police_officer:"
+    },
     "bad.code": {
         "note": "Please consider logging a ticket @ https://github.com/the-peon-project/peon-bot-discord/issues/new/choose",
         "user": null,

@@ -3,6 +3,7 @@
     "orc.none": "You not command any Warparties. You should conquer Warparty.",
     "orc.notavailable": "Orc cannot get to War-party.",
     "orc.dne": "There is no Warparty by that name, Warchief.",
+    "srv.portsused" : "There is another war party in the way, Warchief",
     "srv.dne": "Orc cannot find that Warcamp, Warchief. Does it exist?",
     "srv.notexplicit": "Orc needs to know exactly which server you want to conquer. Too many options",
     "srv.param": "You not give Orc enough information.",
