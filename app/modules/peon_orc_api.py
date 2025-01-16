@@ -232,7 +232,7 @@ def server_actions(action,args):
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down in ``{arg_interval}``."
             logging.debug("STEP 8")
             if len(args) == 1: # Only the permissions arg should be left
-                server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
+                return server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
             else:
                 return { "status" : "error", "err_code" : "srv.input", "command" : action}
         return { "status" : "success", "data" : f"{response}" }
