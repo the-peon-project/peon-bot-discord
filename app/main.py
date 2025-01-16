@@ -149,6 +149,7 @@ async def usage(ctx):
         commands = json.load(file)
     response = ""
     for command, info in commands.items():
+        if command.startswith('~'): continue # Skip hidden commands
         if info[args[0]]:
             if args[0] == 'admin':
                 response += f"`{info[args[0]]}` {info['note']}\n\n"
