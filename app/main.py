@@ -216,12 +216,30 @@ async def get_plans(ctx):
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
     args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Server REGISTRATION requested.")
+    logging.info("Orchestrator Registration requested.")
     if len(args) != 3:
         response = "TODO" # error_message('parameterCount', 'register')
         embed = response
     await ctx.send(embed=embed)
 
+@bot.command(name='unregister',aliases=cmd_aliases["unregister"])
+async def register(ctx, *args):
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
+    logging.info("Orchestrator De-registration requested.")
+    if len(args) != 3:
+        response = "TODO" # error_message('parameterCount', 'register')
+        embed = response
+    await ctx.send(embed=embed)
+
+@bot.command(name='create',aliases=cmd_aliases["create"])
+async def register(ctx, *args):
+    args = identify_channel(channel_request=ctx.channel.name, args=args)
+    logging.info("Server CREATION requested.")
+    if len(args) != 3:
+        response = "TODO" # error_message('parameterCount', 'register')
+        embed = response
+    await ctx.send(embed=embed)
+    
 # TODO: --- End ---------------------------------
 
 # MAIN
