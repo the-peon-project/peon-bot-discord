@@ -216,7 +216,7 @@ async def get_plans(ctx):
 @bot.command(name='register',aliases=cmd_aliases["register"])
 async def register(ctx, *args):
     args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Orchestrator Registration requested.")
+    logging.info("Orchestrator REGISTRATION requested.")
     if len(args) != 3:
         response = "TODO" # error_message('parameterCount', 'register')
         embed = response
