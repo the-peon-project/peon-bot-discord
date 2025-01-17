@@ -28,5 +28,11 @@
     ],
     "update": [
         "Update"
+    ],
+    "unregister": [
+        "Unregister"
+    ],
+    "create": [
+        "Create"
     ]
 }
