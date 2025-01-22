@@ -2,6 +2,11 @@ import logging
 import json
 import random
 import os
+import re
+
+# Settings
+base_url = "https://raw.githubusercontent.com/the-peon-project"
+games_url = f"{base_url}/peon-docs/refs/heads/main/manual/docs/games.md"
 
 # Container prefix
 prefix = "peon.warcamp."
@@ -24,35 +29,6 @@ txt_errors = json.load(open(f"/app/reference/{settings['language']}/errors.json"
 def get_quote():
     return random.choice(txt_quotes)
 
-# Load orchestrators from disk
-def get_peon_orcs():
-    try:
-        config_file = "/app/config/peon.orchestrators.json"
-        logging.debug("Loading orchestrators file")
-        with open(config_file, 'r') as file:
-            orchestrators = json.load(file)
-        API_KEY = os.environ.get('LOCAL_API_KEY',None)
-        if API_KEY:
-            for entry in orchestrators:
-                if entry["url"] == "http://peon.orc:5000":
-                    if entry["key"] != API_KEY:
-                        logging.debug("Updating orchestrator API key")
-                        entry["key"] = f"'{API_KEY}'"
-                        with open(config_file, 'w') as file:
-                            json.dump(orchestrators, file, indent=4)
-                        entry["key"] = API_KEY
-                break
-        return {"status": "success", "data": orchestrators}
-    except FileNotFoundError:
-        logging.debug("No orchestrators file found. Creating one.")
-        default_data = []
-        with open(config_file, 'w') as file:
-            json.dump(default_data, file, indent=4)
-        return {"status": "error", "info": "Orchestrators file not found. Created a new one."}
-    except Exception as e:
-        logging.error(f"An error occurred: {e}")
-        return {"status": "error", "info": str(e)}
-
 def identify_channel(channel_request,args=tuple()):
     if channel_request == settings['control_channel']:
         permission='admin'
@@ -66,3 +42,13 @@ def identify_channel(channel_request,args=tuple()):
             args = tuple(channel_request.split('-'))[::-1]
     args = (permission,) + args
     return args
+
+def look_for_regex_in_args(regex,args):
+    try:
+        for argument in args:
+            match = re.search(regex, argument)
+            if match:
+                logging.debug(f"{match[0]}")
+                return match[0]
+    except:
+        return None

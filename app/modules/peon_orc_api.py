@@ -3,7 +3,8 @@ import logging
 from datetime import datetime
 import pytz
 import requests
-from modules import get_peon_orcs, settings
+from modules import *
+from modules.orchestrators import get_peon_orcs
 import re
 
 def get_orchestrator_details(url, api_key):
@@ -85,15 +86,7 @@ def get_warplan(peon_orchestrators,game_uid):
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
 
-def look_for_regex_in_args(regex,args):
-    try:
-        for argument in args:
-            match = re.search(regex, argument)
-            if match:
-                logging.debug(f"{match[0]}")
-                return match[0]
-    except:
-        return None
+
 
 def server_action(url, api_key, server_uid, action, timer={}):
     logging.debug(f'[serverAction] - {action}]')
@@ -102,6 +95,12 @@ def server_action(url, api_key, server_uid, action, timer={}):
     if action == "get":
         return (requests.get(url, headers=headers)).json()
     return (requests.put(url, headers=headers,json=timer)).json()
+
+def server_backup(url, api_key, server_uid):
+    logging.debug(f'[serverBackup] - {server_uid}]')
+    url = f"{url}/api/v1/server/save/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    return (requests.put(url, headers=headers)).json()
 
 def server_actions(action,args):
     logging.debug("STEP 1 - Check for active orchestrators")

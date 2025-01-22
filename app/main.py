@@ -8,15 +8,13 @@ import discord
 from discord.ext import commands
 from modules import *
 from modules.peon_orc_api import *
+from modules.orchestrators import *
 from modules.shared import configure_logging
 import requests
 
 intents = discord.Intents.default()
 intents.message_content = True
 
-# Settings
-base_url = "https://raw.githubusercontent.com/the-peon-project"
-games_url = f"{base_url}/peon-docs/refs/heads/main/manual/docs/games.md"
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
 def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
@@ -213,32 +211,33 @@ async def get_plans(ctx):
     
 # TODO: --- Start ---------------------------------
 
-@bot.command(name='register',aliases=cmd_aliases["register"])
-async def register(ctx, *args):
-    args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Orchestrator REGISTRATION requested.")
-    if len(args) != 3:
-        response = "TODO" # error_message('parameterCount', 'register')
-        embed = response
-    await ctx.send(embed=embed)
+@bot.command(name='register', aliases=cmd_aliases["register"])
+async def register(ctx):
+    view = RegisterButton()
+    embed = discord.Embed(
+        title="Register Orchestrator",
+        description="Click the button below to register a new orchestrator",
+        color=discord.Color.blue()
+    )
+    await ctx.send(embed=embed, view=view)
 
-@bot.command(name='unregister',aliases=cmd_aliases["unregister"])
-async def register(ctx, *args):
-    args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Orchestrator De-registration requested.")
-    if len(args) != 3:
-        response = "TODO" # error_message('parameterCount', 'register')
-        embed = response
-    await ctx.send(embed=embed)
+# @bot.command(name='unregister',aliases=cmd_aliases["unregister"])
+# async def register(ctx, *args):
+#     args = identify_channel(channel_request=ctx.channel.name, args=args)
+#     logging.info("Orchestrator De-registration requested.")
+#     if len(args) != 3:
+#         response = "TODO" # error_message('parameterCount', 'register')
+#         embed = response
+#     await ctx.send(embed=embed)
 
-@bot.command(name='create',aliases=cmd_aliases["create"])
-async def register(ctx, *args):
-    args = identify_channel(channel_request=ctx.channel.name, args=args)
-    logging.info("Server CREATION requested.")
-    if len(args) != 3:
-        response = "TODO" # error_message('parameterCount', 'register')
-        embed = response
-    await ctx.send(embed=embed)
+# @bot.command(name='create',aliases=cmd_aliases["create"])
+# async def register(ctx, *args):
+#     args = identify_channel(channel_request=ctx.channel.name, args=args)
+#     logging.info("Server CREATION requested.")
+#     if len(args) != 3:
+#         response = "TODO" # error_message('parameterCount', 'register')
+#         embed = response
+#     await ctx.send(embed=embed)
     
 # TODO: --- End ---------------------------------
 
