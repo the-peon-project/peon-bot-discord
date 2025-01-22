@@ -7,8 +7,8 @@ import logging
 import discord
 from discord.ext import commands
 from modules import *
-from modules.peon_orc_api import *
 from modules.orchestrators import *
+from modules.orchestrator import *
 from modules.shared import configure_logging
 import requests
 
@@ -16,30 +16,6 @@ intents = discord.Intents.default()
 intents.message_content = True
 
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
-
-def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
-    embed = discord.Embed(color=discord.Color.orange())
-    embed.description = '_"{0}"_'.format(txt_errors[err_code])
-    code = txt_commands[command][permission]
-    note = txt_commands[command]['note']
-    message=f"{note}"
-    if code:
-        message+=f"```bash\n{code}```"
-    embed.add_field(name=f"Request failure",value=message)
-    return embed
-
-def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_uid=None):
-    embed = discord.Embed(color=discord.Color.green())
-    embed.description = f'_"{get_quote()}"_'
-    if message:
-        embed.add_field(name=title, value=message)
-    if image_url:
-        embed.set_image(url=image_url)
-    elif thumbnail_url:
-        embed.set_thumbnail(url=thumbnail_url)
-    elif game_uid:
-        embed.set_image(url=f"{base_url}/peon-warplans/main/{game_uid}/logo.png")
-    return embed
 
 @bot.event
 async def on_ready():

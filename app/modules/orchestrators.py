@@ -75,6 +75,9 @@ class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
 
     async def on_submit(self, interaction: discord.Interaction):
         logging.info(f"Orchestrator registration: {self.orchestrator_name.value} at {self.orchestrator_url.value}")
+        result = register_peon_orc(self.orchestrator_name.value, self.orchestrator_url.value, self.orchestrator_api_key.value)
+        
+        
         embed = discord.Embed(
             title="Registration Request",
             description=f"Orchestrator: {self.orchestrator_name.value}\nURL: {self.orchestrator_url.value}",
