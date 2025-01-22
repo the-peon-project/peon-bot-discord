@@ -86,8 +86,6 @@ def get_warplan(peon_orchestrators,game_uid):
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
 
-
-
 def server_action(url, api_key, server_uid, action, timer={}):
     logging.debug(f'[serverAction] - {action}]')
     url = f"{url}/api/v1/server/{action}/{server_uid}"
