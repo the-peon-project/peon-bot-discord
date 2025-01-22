@@ -46,12 +46,12 @@ def register_peon_orc(orc_name, orc_url, orc_key):
         for entry in orchestrators:
             if entry["name"] == orc_name:
                 return {"status": "error", "info": "Orchestrator already registered."}
-        #if get_orchestrator_details(orc_url, orc_key)['status'] != 
+        if (orc_responose := get_orchestrator_details(orc_url, orc_key))['status'] != "success": return {"status": "error", "info": "Orchestrator not available."}
         orchestrators.append({"name": orc_name, "url": orc_url, "key": orc_key})
         config_file = "/app/config/peon.orchestrators.json"
         with open(config_file, 'w') as file:
             json.dump(orchestrators, file, indent=4)
-        return {"status": "success", "info": "Orchestrator registered."}
+        return {"status": "success", "info": orc_responose['data']}
     except Exception as e:
         logging.error(f"An error occurred: {e}")
         return {"status": "error", "info": str(e)}
