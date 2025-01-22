@@ -28,10 +28,14 @@ class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
 
     async def on_submit(self, interaction: discord.Interaction):
         logging.info(f"Orchestrator registration: {self.orchestrator_name.value} at {self.orchestrator_url.value}")
-        if register_peon_orc(self.orchestrator_name.value, self.orchestrator_url.value, self.orchestrator_api_key.value)["status"] == "success":
-            embed = build_card(title="Registration Request", message=f"Orchestrator: {self.orchestrator_name.value}\nURL: {self.orchestrator_url.value} registered succesfully")
+        if (response := register_peon_orc(self.orchestrator_name.value, self.orchestrator_url.value, self.orchestrator_api_key.value))["status"] == "success":
+            response_string = f"Orchestrator: {self.orchestrator_name.value}\nURL: {self.orchestrator_url.value} registered succesfully\n```bash\n"
+            for key,value in response['data'].items():
+                response_string += f"{key}: {value}\n"
+            response_string += "```"
+            embed = build_card(title="Registration Request", message=response_string)
         else:
-            embed = build_card_err(err_code="bad.code", command="bad.code", permission="user")
+            embed = build_card_err(err_code="bad.code", command="bad.code", permission="user", note=response['info'])
         await interaction.response.send_message(embed=embed)
 
 class RegisterButton(discord.ui.View):
