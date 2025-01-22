@@ -54,12 +54,13 @@ def look_for_regex_in_args(regex,args):
     except:
         return None
 
-def build_card_err(err_code='bad.code',command='bad.code',permission='user'):
+def build_card_err(err_code='bad.code',command='bad.code',permission='user',note=None):
     embed = discord.Embed(color=discord.Color.orange())
     embed.description = '_"{0}"_'.format(txt_errors[err_code])
     code = txt_commands[command][permission]
-    note = txt_commands[command]['note']
-    message=f"{note}"
+    message=""
+    if note: message += f"*{note}*\n"
+    message += f"{txt_commands[command]['note']}"
     if code:
         message+=f"```bash\n{code}```"
     embed.add_field(name=f"Request failure",value=message)
