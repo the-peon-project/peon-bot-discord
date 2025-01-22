@@ -188,8 +188,6 @@ async def get_plans(ctx):
     else: embed = build_card_err(err_code="orc.none",command="register",permission=args[0])
     await ctx.send(embed=embed)
     
-# TODO: --- Start ---------------------------------
-
 @bot.command(name='register', aliases=cmd_aliases["register"])
 async def register(ctx):
     view = RegisterButton()
@@ -198,7 +196,9 @@ async def register(ctx):
         description="Click the button below to register a new orchestrator",
         color=discord.Color.blue()
     )
-    await ctx.send(embed=embed, view=view)
+    await ctx.send(embed=embed, view=view)   
+
+# TODO: --- Start ---------------------------------
 
 # @bot.command(name='unregister',aliases=cmd_aliases["unregister"])
 # async def register(ctx, *args):
