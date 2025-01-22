@@ -3,15 +3,70 @@ import logging
 from datetime import datetime
 import pytz
 import requests
-from modules import *
-from modules.orchestrators import get_peon_orcs
 import re
+import json
+import os
+from . import *
+
+# Load orchestrators from disk
+def get_peon_orcs():
+    try:
+        config_file = "/app/config/peon.orchestrators.json"
+        logging.debug("Loading orchestrators file")
+        with open(config_file, 'r') as file:
+            orchestrators = json.load(file)
+        API_KEY = os.environ.get('LOCAL_API_KEY',None)
+        if API_KEY:
+            for entry in orchestrators:
+                if entry["url"] == "http://peon.orc:5000":
+                    if entry["key"] != API_KEY:
+                        logging.debug("Updating orchestrator API key")
+                        entry["key"] = f"'{API_KEY}'"
+                        with open(config_file, 'w') as file:
+                            json.dump(orchestrators, file, indent=4)
+                        entry["key"] = API_KEY
+                break
+        return {"status": "success", "data": orchestrators}
+    except FileNotFoundError:
+        logging.debug("No orchestrators file found. Creating one.")
+        default_data = []
+        with open(config_file, 'w') as file:
+            json.dump(default_data, file, indent=4)
+        return {"status": "error", "info": "Orchestrators file not found. Created a new one."}
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return {"status": "error", "info": str(e)}
+
+def register_peon_orc(orc_name, orc_url, orc_key):
+    try:
+        orchestrators = get_peon_orcs()
+        if orchestrators["status"] == "error":
+            return orchestrators
+        orchestrators = orchestrators["data"]
+        for entry in orchestrators:
+            if entry["name"] == orc_name:
+                return {"status": "error", "info": "Orchestrator already registered."}
+        #if get_orchestrator_details(orc_url, orc_key)['status'] != 
+        orchestrators.append({"name": orc_name, "url": orc_url, "key": orc_key})
+        config_file = "/app/config/peon.orchestrators.json"
+        with open(config_file, 'w') as file:
+            json.dump(orchestrators, file, indent=4)
+        return {"status": "success", "info": "Orchestrator registered."}
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return {"status": "error", "info": str(e)}
 
 def get_orchestrator_details(url, api_key):
     logging.debug('[get_orchestrator_details]')
     url = f"{url}/api/v1/orchestrator"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    return (requests.get(url, headers=headers)).json()
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error fetching orchestrator details: {e}")
+        return {"status": "error", "message": str(e)}
 
 # Services Get users in a certain group
 def get_servers(url, api_key):
