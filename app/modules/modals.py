@@ -30,7 +30,7 @@ class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
         logging.info(f"Orchestrator registration: {self.orchestrator_name.value} at {self.orchestrator_url.value}")
         if (response := register_peon_orc(self.orchestrator_name.value, self.orchestrator_url.value, self.orchestrator_api_key.value))["status"] == "success":
             response_string = f"Orchestrator: {self.orchestrator_name.value}\nURL: {self.orchestrator_url.value} registered succesfully\n```bash\n"
-            for key,value in response['data'].items():
+            for key,value in response['info'].items():
                 response_string += f"{key}: {value}\n"
             response_string += "```"
             embed = build_card(title="Registration Request", message=response_string)
