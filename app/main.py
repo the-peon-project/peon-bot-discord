@@ -7,7 +7,7 @@ import logging
 import discord
 from discord.ext import commands
 from modules import *
-from modules.orchestrators import *
+from modules.modals import *
 from modules.orchestrator import *
 from modules.shared import configure_logging
 import requests
@@ -47,8 +47,11 @@ async def get_plans(ctx):
         if orchestrators['data']:
             orcstring = ""
             for orc in orchestrators['data']:
-                info = get_orchestrator_details(url=orc['url'],api_key=orc['key'])
-                orcstring += f"- Orchestrator: {orc['name']} [{info['version']}](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)"
+                if (orc_response := get_orchestrator_details(url=orc['url'],api_key=orc['key']))['status'] == "success":
+                    info = orc_response['data']
+                    orcstring += f"- Orchestrator: {orc['name']} [{info['version']}](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
+                else:
+                    orcstring += f"- Orchestrator: {orc['name']} [UNKNOWN](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
             response = response.replace('[ORCHESTRATORS]',f"{orcstring}")
     try:
         file_contents = requests.get(games_url).text
