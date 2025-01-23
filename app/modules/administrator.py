@@ -3,6 +3,21 @@ import discord
 from . import *
 from .orchestrator import *
 
+class AdministratorActions(discord.ui.View):
+    def __init__(self):
+        super().__init__()
+        
+    @discord.ui.button(label="Register Orchestrator", style=discord.ButtonStyle.primary)
+    async def register_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        modal = RegisterModal()
+        await interaction.response.send_modal(modal)
+
+    @discord.ui.button(label="De-Register Orchestrator", style=discord.ButtonStyle.primary)
+    async def deregister_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        view = discord.ui.View()
+        view.add_item(DeregisterSelect())
+        await interaction.response.send_message("Select an orchestrator to remove:", view=view)
+
 # Orchestrator Registration Modal
 class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
     orchestrator_name = discord.ui.TextInput(
@@ -38,7 +53,7 @@ class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
             embed = build_card_err(err_code="bad.code", command="bad.code", permission="user", note=response['info'])
         await interaction.response.send_message(embed=embed)
 
-class ConfirmView(discord.ui.View):
+class DeregisterConfirmView(discord.ui.View):
     def __init__(self, orchestrator_name: str):
         super().__init__()
         self.orchestrator_name = orchestrator_name
@@ -76,24 +91,8 @@ class DeregisterSelect(discord.ui.Select):
         )
 
     async def callback(self, interaction: discord.Interaction):
-        view = ConfirmView(self.values[0])
+        view = DeregisterConfirmView(self.values[0])
         await interaction.response.send_message(
             f"Are you sure you want to deregister orchestrator '{self.values[0]}'?",
-            view=view,
-            ephemeral=True
+            view=view
         )
-
-class RegisterButton(discord.ui.View):
-    def __init__(self):
-        super().__init__()
-        
-    @discord.ui.button(label="Register Orchestrator", style=discord.ButtonStyle.primary)
-    async def register_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        modal = RegisterModal()
-        await interaction.response.send_modal(modal)
-
-    @discord.ui.button(label="De-Register Orchestrator", style=discord.ButtonStyle.primary)
-    async def deregister_button(self, interaction: discord.Interaction, button: discord.ui.Button):
-        view = discord.ui.View()
-        view.add_item(DeregisterSelect())
-        await interaction.response.send_message("Select an orchestrator to remove:", view=view, ephemeral=True)
