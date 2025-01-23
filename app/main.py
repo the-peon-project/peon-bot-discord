@@ -200,14 +200,15 @@ async def register(ctx):
 
 # TODO: --- Start ---------------------------------
 
-# @bot.command(name='unregister',aliases=cmd_aliases["unregister"])
-# async def register(ctx, *args):
-#     args = identify_channel(channel_request=ctx.channel.name, args=args)
-#     logging.info("Orchestrator De-registration requested.")
-#     if len(args) != 3:
-#         response = "TODO" # error_message('parameterCount', 'register')
-#         embed = response
-#     await ctx.send(embed=embed)
+@bot.command(name='deregister', aliases=cmd_aliases["deregister"])
+async def deregister(ctx):
+    view = DeregisterButton()
+    embed = discord.Embed(
+        title="Deregister Orchestrator",
+        description="Click the button below to deregister an orchestrator",
+        color=discord.Color.orange()
+    )
+    await ctx.send(embed=embed, view=view) 
 
 # @bot.command(name='create',aliases=cmd_aliases["create"])
 # async def register(ctx, *args):
