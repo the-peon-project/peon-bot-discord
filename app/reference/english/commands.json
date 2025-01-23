@@ -32,13 +32,13 @@
     "register": {
         "note": "Register an Orchestrator.",
         "user": null,
-        "admin": "!register <uniqueName> <orchestratorUrl>:<port> <apiKey>",
+        "admin": "!register",
         "symbol": ":pick:"
     },
-    "unregister": {
-        "note": "Register an Orchestrator.",
+    "deregister": {
+        "note": "Deregister an Orchestrator.",
         "user": null,
-        "admin": "!unregister <uniqueName>",
+        "admin": "!deregister>",
         "symbol": ":fire:"
     },
     "refresh": {

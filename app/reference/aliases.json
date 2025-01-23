@@ -29,8 +29,8 @@
     "update": [
         "Update"
     ],
-    "unregister": [
-        "Unregister"
+    "deregister": [
+        "Deregister"
     ],
     "create": [
         "Create"
