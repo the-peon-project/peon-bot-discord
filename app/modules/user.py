@@ -10,7 +10,7 @@ class UserActions(discord.ui.View):
         super().__init__()
         
     @discord.ui.button(label="Start", style=discord.ButtonStyle.primary)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):  
+    async def server_start(self, interaction: discord.Interaction, button: discord.ui.Button):  
         logging.info(f"Server START requested - {self.gameuid} - {self.servername}")
         embed = build_card(
             title="Start Server",
@@ -22,7 +22,7 @@ class UserActions(discord.ui.View):
         #await interaction.response.send_message(embed=embed)
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger)
-    async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
+    async def server_stop(self, interaction: discord.Interaction, button: discord.ui.Button):
         logging.info(f"Server STOP requested - {self.gameuid} - {self.servername}")
         embed = build_card(
             title="Stop Server",
