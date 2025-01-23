@@ -17,26 +17,40 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
+async def clean_channel(channel, bot_user, limit=50):
+    """Clean bot messages from channel"""
+    try:
+        async for message in channel.history(limit=limit):
+            if (message.author == bot_user and 
+                message.embeds and 
+                message.embeds[0].title == "Peon"):
+                await message.delete()
+        return True
+    except Exception as e:
+        logging.error(f"Error cleaning channel {channel.name}: {e}")
+        return False
+
 @bot.event
 async def on_ready():
     logging.info(f'[{bot.user.name}] has connected to Discord!')
-    channels = bot.get_all_channels()
-    for channel in channels:
+    bot_channels = []
+    for channel in bot.get_all_channels():
+        if (isinstance(channel, discord.TextChannel) and channel.permissions_for(channel.guild.me).send_messages):
+            bot_channels.append(channel)
+    for channel in bot_channels:
+        await clean_channel(channel, bot.user)
         if settings['control_channel'] == str(channel.name):
             await channel.send(" has connected to the server.")
-            # view = AdministratorActions()
-            # embed = discord.Embed(
-            #     title="Peon Administrator",
-            #     description="Use the buttons to manage your Peon.",
-            #     color=discord.Color.green()
-            # )
-            # await channel.send(embed=embed, view=view)  
         else:
             if str(channel.name) == 'valheim-ocs':
-                view = UserActions(gameuid=(str(channel.name)).split('-')[0],servername=(str(channel.name)).split('-')[1])
+                # Send new UserActions
+                view = UserActions(
+                    gameuid=(str(channel.name)).split('-')[0],
+                    servername=(str(channel.name)).split('-')[1]
+                )
                 embed = discord.Embed(
                     title="Peon",
-                    description="Use the buttons to manage your Peon.",
+                    description="*Ready to work...*",
                     color=discord.Color.blue()
                 )
                 await channel.send(embed=embed, view=view)  
