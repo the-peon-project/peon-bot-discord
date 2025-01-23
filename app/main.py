@@ -37,7 +37,7 @@ async def on_ready():
                 embed = discord.Embed(
                     title="Peon",
                     description="Use the buttons to manage your Peon.",
-                    color=discord.Color.green()
+                    color=discord.Color.blue()
                 )
                 await channel.send(embed=embed, view=view)  
 
