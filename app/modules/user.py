@@ -11,21 +11,20 @@ class UserActions(discord.ui.View):
         
     @discord.ui.button(label="Start", style=discord.ButtonStyle.primary)
     async def server_start(self, interaction: discord.Interaction, button: discord.ui.Button):  
-        logging.info(f"Server START requested - {self.gameuid} - {self.servername}")
+        username = str(interaction.user)
+        logging.info(f"Server START requested by {username} - {self.gameuid} - {self.servername}")
         embed = build_card(
             title="Start Server",
-            message=f"Start requested"
+            message=f"Start requested by {username}"
         )
         await interaction.response.send_message(embed=embed)
-        # if "success" in (response := server_actions('start', args))['status']: embed = build_card(title="Start Server",message=response['data'])
-        # else: embed = build_card_err(err_code=response['err_code'],command=response['command'],permission=args[0]) 
-        #await interaction.response.send_message(embed=embed)
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger)
     async def server_stop(self, interaction: discord.Interaction, button: discord.ui.Button):
-        logging.info(f"Server STOP requested - {self.gameuid} - {self.servername}")
+        username = str(interaction.user)
+        logging.info(f"Server STOP requested by {username} - {self.gameuid} - {self.servername}")
         embed = build_card(
             title="Stop Server",
-            message=f"Stop requested"
+            message=f"Stop requested by {username}"
         )
         await interaction.response.send_message(embed=embed)
