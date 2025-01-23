@@ -296,7 +296,7 @@ def server_actions(action,args):
             if len(args) == 1: # Only the permissions arg should be left
                 if (result := server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer))['status'] == 'success': return result
                 else: 
-                    result['command'] = '~admin'
+                    result['command'] = '~admin' # Command is for admin only
                     return result  
             else:
                 return { "status" : "error", "err_code" : "srv.input", "command" : action}
