@@ -55,34 +55,9 @@ def look_for_regex_in_args(regex,args):
     except:
         return None
 
-def build_card_err(err_code='bad.code',command='bad.code',permission='user',note=None):
-    embed = discord.Embed(color=discord.Color.orange())
-    embed.description = '_"{0}"_'.format(txt_errors[err_code])
-    code = txt_commands[command][permission]
-    message=""
-    if note: message += f"*{note}*\n"
-    message += f"{txt_commands[command]['note']}"
-    if code:
-        message+=f"```bash\n{code}```"
-    embed.add_field(name=f"Request failure",value=message)
-    return embed
-
-def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_uid=None):
-    embed = discord.Embed(color=discord.Color.green())
-    embed.description = f'_"{get_quote()}"_'
-    if message:
-        embed.add_field(name=title, value=message)
-    if image_url:
-        embed.set_image(url=image_url)
-    elif thumbnail_url:
-        embed.set_thumbnail(url=thumbnail_url)
-    elif game_uid:
-        embed.set_image(url=f"{base_url}/peon-warplans/main/{game_uid}/logo.png")
-    return embed
-
-def build_card_simple(message="*GIVE PEON SOMETHING TO SAY DEV!!!*"):
-    embed = discord.Embed(
-        description=f"{message}",
-        color=discord.Color.green()
-    )
+def build_card(status='nok',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
+    if status == 'ok':
+        embed = discord.Embed(description=f"{message}",color=discord.Color.green())
+    else:
+        embed = discord.Embed(description=f"{message}",color=discord.Color.orange())
     return embed
