@@ -12,10 +12,7 @@ class UserActions(discord.ui.View):
     async def _handle_server_action(self, interaction: discord.Interaction, action: str):
         username = str(interaction.user)
         logging.info(f"Server {action.upper()} requested by {username} - {self.gameuid} - {self.servername}")
-        embed = build_card(
-            title=f"{action.capitalize()} Server",
-            message=f"{action.capitalize()} requested by @{username}"
-        )
+        embed = build_card_simple( message=f"**{action.capitalize()}** server requested by *@{username}*")
         await interaction.response.defer()
         await interaction.channel.send(embed=embed)
 
