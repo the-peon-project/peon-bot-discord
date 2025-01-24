@@ -79,3 +79,10 @@ def build_card(title=None,message=None,image_url=None,thumbnail_url=None,game_ui
     elif game_uid:
         embed.set_image(url=f"{base_url}/peon-warplans/main/{game_uid}/logo.png")
     return embed
+
+def build_card_simple(message="*GIVE PEON SOMETHING TO SAY DEV!!!*"):
+    embed = discord.Embed(
+        description=f"{message}",
+        color=discord.Color.green()
+    )
+    return embed
