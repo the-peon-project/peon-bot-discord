@@ -55,7 +55,7 @@ async def peon(ctx):
         description=f"*{get_quote()}*",
         color=discord.Color.blue()
     )
-    embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_L2R_medium.png")
+    embed.set_image(url=bot_image)
     await ctx.channel.send(embed=embed, view=view)
 
 # Command: Clean channel

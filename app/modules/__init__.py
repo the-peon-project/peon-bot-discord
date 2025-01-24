@@ -8,6 +8,7 @@ import discord
 # Settings
 base_url = "https://raw.githubusercontent.com/the-peon-project"
 games_url = f"{base_url}/peon-docs/refs/heads/main/manual/docs/games.md"
+bot_image = f"{base_url}/peon/refs/heads/main/media/PEON_L2R_medium.png"
 
 # Container prefix
 prefix = "peon.warcamp."
