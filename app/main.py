@@ -19,8 +19,7 @@ async def clean_channel(channel, bot_user, limit=50):
     """Clean bot messages from channel"""
     try:
         async for message in channel.history(limit=limit):
-            if (message.author == bot_user and 
-                message.embeds # and 
+            if (message.author == bot_user and message.embeds # and 
                 # message.embeds[0].title == "Peon"
                 ):
                 await message.delete()
@@ -53,11 +52,11 @@ async def peon(ctx):
     servername=(str(ctx.channel.name)).split('-')[1]
     view = UserActions(gameuid=gameuid,servername=(servername))
     embed = discord.Embed(
-        description="*Ready to work...*",
+        description=f"*{get_quote}*",
         color=discord.Color.blue()
     )
     embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_L2R_medium.png")
-    await ctx.channel.send(embed=embed, view=view)  
+    await ctx.channel.send(embed=embed, view=view)
 
 # Command: Clean channel
 @bot.command(name='clear',aliases=cmd_aliases["clear"])
