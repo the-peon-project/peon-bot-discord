@@ -23,6 +23,8 @@ async def clean_channel(channel, bot_user, limit=50):
                 message.embeds and 
                 message.embeds[0].title == "Peon"):
                 await message.delete()
+            elif (message.content.startswith(settings['command_prefix'])): 
+                await message.delete()
         return True
     except Exception as e:
         logging.error(f"Error cleaning channel {channel.name}: {e}")
@@ -41,23 +43,22 @@ async def on_ready():
         if settings['control_channel'] == str(channel.name):
             await channel.send(" has connected to the server.")
 
-# Command: peon
+# Command: User interaction
 @bot.command(name='peon',aliases=cmd_aliases["peon"])
 @commands.has_permissions(manage_messages=True)
-async def peon(ctx, *args):
-    args = identify_channel(channel_request=ctx.channel.name)
+async def peon(ctx):
     await clean_channel(ctx.channel, bot.user)
     gameuid=(str(ctx.channel.name)).split('-')[0],
     servername=(str(ctx.channel.name)).split('-')[1]
     view = UserActions(gameuid=gameuid,servername=(servername))
     embed = discord.Embed(
-        title="Peon",
         description="*Ready to work...*",
         color=discord.Color.blue()
     )
+    embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_outline_small.png")
     await ctx.channel.send(embed=embed, view=view)  
 
-# Clean: command
+# Command: Clean channel
 @bot.command(name='clear',aliases=cmd_aliases["clear"])
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int = 10):
