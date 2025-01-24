@@ -15,7 +15,7 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
-async def clean_channel(channel, bot_user, limit=50):
+async def clean_channel(channel, bot_user, limit=5):
     """Clean bot messages from channel"""
     try:
         async for message in channel.history(limit=limit):
@@ -34,12 +34,7 @@ async def clean_channel(channel, bot_user, limit=50):
 @bot.event
 async def on_ready():
     logging.info(f'[{bot.user.name}] has connected to Discord!')
-    bot_channels = []
     for channel in bot.get_all_channels():
-        if (isinstance(channel, discord.TextChannel) and channel.permissions_for(channel.guild.me).send_messages):
-            bot_channels.append(channel)
-    for channel in bot_channels:
-        await clean_channel(channel, bot.user)
         if settings['control_channel'] == str(channel.name):
             await channel.send(" has connected to the server.")
 
@@ -47,7 +42,7 @@ async def on_ready():
 @bot.command(name='peon',aliases=cmd_aliases["peon"])
 @commands.has_permissions(manage_messages=True)
 async def peon(ctx):
-    await clean_channel(ctx.channel, bot.user)
+    await clean_channel(ctx.channel, bot.user,limit=20)
     gameuid=(str(ctx.channel.name)).split('-')[0],
     servername=(str(ctx.channel.name)).split('-')[1]
     view = UserActions(gameuid=gameuid,servername=(servername))
