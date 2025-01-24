@@ -2,7 +2,9 @@
     "peon": [
         "peonbot",
         "poke",
-        "start"
+        "start",
+        "get",
+        "stop"
     ],
     "clear": [
         "clean"
