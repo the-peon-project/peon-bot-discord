@@ -52,7 +52,7 @@ async def peon(ctx):
     servername=(str(ctx.channel.name)).split('-')[1]
     view = UserActions(gameuid=gameuid,servername=(servername))
     embed = discord.Embed(
-        description=f"*{get_quote}*",
+        description=f"*{get_quote()}*",
         color=discord.Color.blue()
     )
     embed.set_image(url="https://raw.githubusercontent.com/the-peon-project/peon/refs/heads/main/media/PEON_L2R_medium.png")
