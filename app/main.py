@@ -1,8 +1,6 @@
 #/usr/bin/python3
 import os
-import json
 import sys
-import re
 import logging
 import discord
 from discord.ext import commands
@@ -30,6 +28,7 @@ async def clean_channel(channel, bot_user, limit=50):
         logging.error(f"Error cleaning channel {channel.name}: {e}")
         return False
 
+# Startup message
 @bot.event
 async def on_ready():
     logging.info(f'[{bot.user.name}] has connected to Discord!')
@@ -41,26 +40,31 @@ async def on_ready():
         await clean_channel(channel, bot.user)
         if settings['control_channel'] == str(channel.name):
             await channel.send(" has connected to the server.")
-        else:
-            if str(channel.name) == 'valheim-ocs':
-                # Send new UserActions
-                view = UserActions(
-                    gameuid=(str(channel.name)).split('-')[0],
-                    servername=(str(channel.name)).split('-')[1]
-                )
-                embed = discord.Embed(
-                    title="Peon",
-                    description="*Ready to work...*",
-                    color=discord.Color.blue()
-                )
-                await channel.send(embed=embed, view=view)  
 
+# Command: peon
+@bot.command(name='peon',aliases=cmd_aliases["peon"])
+@commands.has_permissions(manage_messages=True)
+async def peon(ctx, *args):
+    args = identify_channel(channel_request=ctx.channel.name)
+    await clean_channel(ctx.channel, bot.user)
+    gameuid=(str(ctx.channel.name)).split('-')[0],
+    servername=(str(ctx.channel.name)).split('-')[1]
+    view = UserActions(gameuid=gameuid,servername=(servername))
+    embed = discord.Embed(
+        title="Peon",
+        description="*Ready to work...*",
+        color=discord.Color.blue()
+    )
+    await ctx.channel.send(embed=embed, view=view)  
+
+# Clean: command
 @bot.command(name='clear',aliases=cmd_aliases["clear"])
 @commands.has_permissions(manage_messages=True)
 async def clear(ctx, amount: int = 10):
-    args = identify_channel(channel_request=ctx.channel.name)
-    if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
-    else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
+    await ctx.channel.purge(limit=amount + 1)
+    #args = identify_channel(channel_request=ctx.channel.name)
+    # if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
+    # else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
 
 # MAIN
 if __name__ == "__main__":
