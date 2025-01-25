@@ -104,8 +104,8 @@ async def get_plans(ctx):
 # MAIN
 if __name__ == "__main__":
     # Configure logging
-    configure_logging()
     print("\n------------------------------\nStarting Discord Bot...\n------------------------------\n")
+    configure_logging()
     TOKEN = os.environ.get('DISCORD_TOKEN', None)
     if TOKEN:
         bot.run(TOKEN)
