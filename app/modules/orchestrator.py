@@ -158,10 +158,10 @@ def server_backup(url, api_key, server_uid):
 def server_actions(action,args):
     logging.debug("STEP 1 - Check for active orchestrators")
     if len(args) == 0: return { "status" : "error", "err_code" : "srv.param", "command" : action}
-    args_old = list(args)
-    args = []
-    for arg in args_old:
-        args.append(arg.lower())
+    # args_old = list(args)
+    # args = []
+    # for arg in args_old:
+    #     args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
     if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "err_code" : "orc.none", "command" : action}
     peon_orchestrators = result['data']
