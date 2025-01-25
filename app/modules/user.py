@@ -46,6 +46,8 @@ class UserActions(discord.ui.View):
     
     @discord.ui.button(label="Info", style=discord.ButtonStyle.secondary, row=1)
     async def server_info(self, interaction: discord.Interaction, button: discord.ui.Button):
+        action='info'
+        await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
         if (response := server_actions(action='get',args=[self.gameuid,self.servername]))['status'] == 'success':
             self.message_body = response['data']
             await self._handle_server_action(interaction, "info")
