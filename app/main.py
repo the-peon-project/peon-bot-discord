@@ -20,8 +20,9 @@ async def clean_channel(channel, bot_user, limit=10):
     try:
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
-                await message.delete()
-            elif (message.content.startswith(settings['command_prefix'])): 
+                if message.embeds[0].image.url == bot_image:
+                    await message.delete()
+            elif (message.content.startswith(settings['command_prefix']) and message.author != bot_user): 
                 await message.delete()
         return True
     except Exception as e:
@@ -37,8 +38,8 @@ async def on_ready():
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.send_messages:
                 await clean_channel(channel, bot.user, limit=100)
-        if settings['control_channel'] == str(channel.name):
-            await channel.send(" has connected to the server.")
+        if settings['control_channel'] == str(channel.name): control_channel = channel
+    await control_channel.send(" has connected to the server.")
 
 # Command: User interaction
 @bot.command(name='peon',aliases=cmd_aliases["peon"])
