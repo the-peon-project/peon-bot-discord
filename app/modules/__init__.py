@@ -55,9 +55,13 @@ def look_for_regex_in_args(regex,args):
     except:
         return None
 
-def build_card(status='nok',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
+def build_card(status='err',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
     if status == 'ok':
         embed = discord.Embed(description=f"{message}",color=discord.Color.green())
-    else:
+    elif status == 'nok':
         embed = discord.Embed(description=f"{message}",color=discord.Color.orange())
+    elif status == 'err':
+        embed = discord.Embed(description=f"{message}",color=discord.Color.red())
+    else:
+        embed = discord.Embed(description=f"{message}",color=discord.Color.blue())
     return embed
