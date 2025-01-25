@@ -3,6 +3,8 @@ import sys
 import os
 
 def configure_logging():
+    dev_mode = os.environ.get('DEV_MODE', 'disabled')
+    print(f"DEV MODE [{dev_mode}]")
     # Set up logging to stdout
     root_logger = logging.getLogger()
     stdout_handler = logging.StreamHandler(sys.stdout)
@@ -10,8 +12,8 @@ def configure_logging():
 
     # Set the log format and level
     log_format = '%(asctime)s %(thread)d [%(levelname)s] %(message)s'
-    log_level = logging.DEBUG if os.environ.get('DEV_MODE', 'disabled') == 'enabled' else logging.INFO
-
+    
+    log_level = logging.DEBUG if dev_mode == 'enabled' else logging.INFO
     # Configure logging to append to Docker container logs
     logging.basicConfig(
         level=log_level,
