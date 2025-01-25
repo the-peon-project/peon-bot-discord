@@ -15,13 +15,13 @@ intents.message_content = True
 
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
-async def clean_channel(channel, bot_user, limit=5):
+async def clean_channel(channel, bot_user, limit=10):
     """Clean bot messages from channel"""
     try:
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
                 await message.delete()
-            elif (message.content.startswith(settings['command_prefix'])): 
+            elif (message.content.startswith(f"!{settings['command_prefix']}")): 
                 await message.delete()
         return True
     except Exception as e:
@@ -33,6 +33,10 @@ async def clean_channel(channel, bot_user, limit=5):
 async def on_ready():
     logging.info(f'[{bot.user.name}] has connected to Discord!')
     for channel in bot.get_all_channels():
+        if isinstance(channel, discord.TextChannel):
+            permissions = channel.permissions_for(channel.guild.me)
+            if permissions.send_messages:
+                await clean_channel(channel, bot.user, limit=100)
         if settings['control_channel'] == str(channel.name):
             await channel.send(" has connected to the server.")
 
