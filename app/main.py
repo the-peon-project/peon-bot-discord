@@ -21,7 +21,7 @@ async def clean_channel(channel, bot_user, limit=10):
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
                 await message.delete()
-            elif (message.content.startswith(f"!{settings['command_prefix']}")): 
+            elif (message.content.startswith(settings['command_prefix'])): 
                 await message.delete()
         return True
     except Exception as e:
