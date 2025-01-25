@@ -16,5 +16,10 @@ def configure_logging():
     logging.basicConfig(
         level=log_level,
         format=log_format,
-        handlers=[stdout_handler]
+        handlers=[stdout_handler],
+        force=True  # This ensures we override any existing configuration
     )
+    
+    # Ensure discord.py's logger doesn't overwhelm your logs
+    discord_logger = logging.getLogger('discord')
+    discord_logger.setLevel(logging.WARNING)
