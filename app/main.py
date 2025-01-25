@@ -32,13 +32,14 @@ async def clean_channel(channel, bot_user, limit=10):
 # Startup message
 @bot.event
 async def on_ready():
-    logging.info(f'[{bot.user.name}] has connected to Discord!')
+    logging.info(f'Connected as bot named @{bot.user.name}. Running PEON init tasks...')
     for channel in bot.get_all_channels():
         if isinstance(channel, discord.TextChannel):
             permissions = channel.permissions_for(channel.guild.me)
             if permissions.send_messages:
                 await clean_channel(channel, bot.user, limit=100)
         if settings['control_channel'] == str(channel.name): control_channel = channel
+    logging.info(f"Informing bot readiness to admin channel <{settings['control_channel']}>")
     await control_channel.send(" has connected to the server.")
 
 # Command: User interaction
