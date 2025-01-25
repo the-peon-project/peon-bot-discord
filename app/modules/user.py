@@ -18,23 +18,28 @@ class UserActions(discord.ui.View):
             embed = build_card(status='ok',message=f"**{action.capitalize()}** server requested by *@{nickname}*")
         elif action == 'info': 
             embed = build_card(status='ok',message=f"{self.message_body}")
-        await interaction.response.defer()
         await interaction.channel.send(embed=embed)
 
     @discord.ui.button(label="Start", style=discord.ButtonStyle.success, row=0)
     async def server_start(self, interaction: discord.Interaction, button: discord.ui.Button):
         action='start'
+        await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
         if (response := server_actions(action=action,args=[self.gameuid,self.servername]))['status'] == 'success':
             await self._handle_server_action(interaction, action)
         else: await interaction.channel.send(embed=build_card(status='nok',message=f"{response['err_code']}"))
         
     @discord.ui.button(label="Restart", style=discord.ButtonStyle.secondary, row=0)
     async def server_restart(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self._handle_server_action(interaction, "restart")
+        action='restart'
+        await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
+        if (response := server_actions(action=action,args=[self.gameuid,self.servername]))['status'] == 'success':
+            await self._handle_server_action(interaction, action)
+        else: await interaction.channel.send(embed=build_card(status='nok',message=f"{response['err_code']}"))
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger, row=0)
     async def server_stop(self, interaction: discord.Interaction, button: discord.ui.Button):
         action='stop'
+        await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
         if (response := server_actions(action=action,args=[self.gameuid,self.servername]))['status'] == 'success':
             await self._handle_server_action(interaction, action)
         else: await interaction.channel.send(embed=build_card(status='nok',message=f"{response['err_code']}"))
