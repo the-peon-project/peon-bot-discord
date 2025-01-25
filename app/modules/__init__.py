@@ -50,7 +50,7 @@ def look_for_regex_in_args(regex,args):
         for argument in args:
             match = re.search(regex, argument)
             if match:
-                logging.debug(f"{match[0]}")
+                # logging.debug(f"Found {match[0]}")
                 return match[0]
     except:
         return None
