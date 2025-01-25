@@ -57,7 +57,6 @@ def register_peon_orc(orc_name, orc_url, orc_key):
         return {"status": "error", "info": str(e)}
 
 def get_orchestrator_details(url, api_key):
-    logging.debug('[get_orchestrator_details]')
     url = f"{url}/api/v1/orchestrator"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     try:
@@ -70,7 +69,6 @@ def get_orchestrator_details(url, api_key):
 
 # Services Get users in a certain group
 def get_servers(url, api_key):
-    logging.debug('[get_servers]')
     url = f"{url}/api/v1/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.get(url, headers=headers)).json()
@@ -86,7 +84,7 @@ def get_servers_all(peon_orchestrators):
     return { "status" : "success", "data" : f"{response}" }
 
 def import_warcamps(peon_orchestrators):
-    logging.debug('[import_warcamps]')
+    logging.debug('Requesting import of unmanaged warcamps')
     warcamps={}
     for orchestrator in peon_orchestrators:
         url = f"{orchestrator['url']}/api/v1/servers"
@@ -107,7 +105,7 @@ def import_warcamps(peon_orchestrators):
     return { "status" : "success", "data" : reponse_warcamps }
 
 def refresh_warplans(peon_orchestrators):
-    logging.debug('[get_plans]')
+    logging.debug('Requesting an update to plans catalogue')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     response = requests.put(url, headers=headers)
@@ -117,7 +115,7 @@ def refresh_warplans(peon_orchestrators):
         return { "status" : "success"}
     
 def get_warplans(peon_orchestrators):
-    logging.debug('[get_plans]')
+    logging.debug('Requesting list of current plans')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     plans = requests.get(url, headers=headers).json()
@@ -129,7 +127,7 @@ def get_warplans(peon_orchestrators):
     return { "status" : "success", "data" : f"{response}" }
 
 def get_warplan(peon_orchestrators,game_uid):
-    logging.debug('[get_plans]')
+    logging.debug('Requesting details for the warplan related to {game_uid}')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{game_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
     plan = requests.get(url, headers=headers)
@@ -142,7 +140,7 @@ def get_warplan(peon_orchestrators,game_uid):
     return { "status" : "success", "data" : f"{response}" }
 
 def server_action(url, api_key, server_uid, action, timer={}):
-    logging.debug(f'[serverAction] - {action}]')
+    logging.debug(f'[server_action] - {action} requested for {server_uid}')
     url = f"{url}/api/v1/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     if action == "get":
@@ -156,16 +154,13 @@ def server_backup(url, api_key, server_uid):
     return (requests.put(url, headers=headers)).json()
 
 def server_actions(action,args):
+    logging.info(f"Server action requested: {action}")
     logging.debug("STEP 1 - Check for active orchestrators")
     if len(args) == 0: return { "status" : "error", "err_code" : "srv.param", "command" : action}
-    # args_old = list(args)
-    # args = []
-    # for arg in args_old:
-    #     args.append(arg.lower())
     # STEP 1: Check that there are some registered orchestrators
     if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "err_code" : "orc.none", "command" : action}
     peon_orchestrators = result['data']
-    #STEP 2: Get argument information\
+    #STEP 2: Get argument information
     logging.debug("STEP 2 - Check for schedule data")
     arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
     if arg_datetime: args.remove(arg_datetime)
@@ -178,7 +173,6 @@ def server_actions(action,args):
     if arg_interval: 
         args.remove(arg_interval)
         arg_interval += time_unit
-    
     if len(args) < 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
     # STEP 3: Get list of servers on orchestrators
     logging.debug("STEP 3 - Collect all servers on all orchestrators")
@@ -195,22 +189,22 @@ def server_actions(action,args):
             logging.warning(f"Host {orchestrator} is unavailable.")
     if len(server_list) == 0: return { "status" : "error", "err_code" : "orc.notavailable", "command" : action}
     # STEP 4: Try and find server with remaining arg/s
-    logging.debug("STEP 3 - Filter by [servername]")
+    logging.debug("STEP 4 - Filter by 'servername'")
     servers_matching_servername = []
     for server in server_list:
         arg_servername = look_for_regex_in_args(server['servername'].lower(),args)
         if arg_servername:
-            logging.debug(f'{server}')
             servers_matching_servername.append(server)
     server_list = servers_matching_servername
-    if len(server_list) == 0: return { "status" : "error", "err_code" : "srv.dne", "command" : action}
+    if len(server_list) == 0: 
+        logging.error('Server not found')
+        return { "status" : "error", "err_code" : "srv.dne", "command" : action}
     elif len(server_list) > 1:
-        logging.debug("STEP 5 - Filter by [game_uid]")
+        logging.debug("STEP 5 - Filter by 'game_uid'")
         servers_matching_gameuid = []
         for server in server_list:
             arg_gameuid = look_for_regex_in_args(server['game_uid'].lower(),args)
             if arg_gameuid:
-                logging.debug(f'{server}')
                 servers_matching_gameuid.append(server)
         server_list = servers_matching_gameuid
         logging.debug("STEP 6 - Filter by Orchestrator")
@@ -224,21 +218,24 @@ def server_actions(action,args):
                     break
             server_list = matched_orchestrator_list
             if len(server_list) > 1: return { "status" : "error", "err_code" : "srv.notexplicit", "command" : action}
+            else:
+                logging.debug("Server found, skipping to STEP 7")
+    else:
+        logging.debug("Server found, skipping to STEP 7")
     server = server_list[0]
     args.remove(server['servername'])
     if server['game_uid'] in args: args.remove(server['game_uid'])
-    logging.debug(f"STEP 7 - Trigger appropriate action on server")
+    logging.debug(f"STEP 7 - Trigger {action} action on server")
     serveruid=f"{server['game_uid']}.{server['servername']}"
     orchestrator = next((orc for orc in peon_orchestrators if orc['name'] == server['orchestrator']), None)
-    # STEP 5: Trigger action on server
     data = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
     if "error" in data:
         response = { "status" : "error", "err_code" : "srv.action.error", "command" : action}
     else:
-        response =f"Orc **{action}** warcamp **{server['servername']}** in {orchestrator['name'].upper()}."
+        response = ""
         if action == 'get':
             if "time" not in args:
-                response += "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n{8:<15}: {9}\n".format(
+                response = "```yaml\n{0:<15}: {1}\n{2:<15}: {3}\n{4:<15}: {5}\n{6:<15}: {7}\n{8:<15}: {9}\n".format(
                     "Warcamp",data["servername"],
                     "Type",data['game_uid'],
                     "Peon State",(data["server_state"].lower()),
@@ -292,12 +289,10 @@ def server_actions(action,args):
             elif arg_interval:
                 timer = { "interval" : f"{arg_interval}" }
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down in ``{arg_interval}``."
-            logging.debug("STEP 8")
-            if len(args) == 1: # Only the permissions arg should be left
-                if (result := server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer))['status'] == 'success': return result
-                else: 
-                    result['command'] = '~admin' # Command is for admin only
-                    return result  
+            # logging.debug("STEP 8 - Permissions check")
+            data = server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
+            if "error" in data:
+                return { "status" : "error", "err_code" : "srv.action.error", "command" : action}
             else:
-                return { "status" : "error", "err_code" : "srv.input", "command" : action}
+                response += str(data)
         return { "status" : "success", "data" : f"{response}" }
