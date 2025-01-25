@@ -7,7 +7,7 @@ class UserActions(discord.ui.View):
     def __init__(self, gameuid, servername):
         self.gameuid = gameuid
         self.servername = servername
-        super().__init__()
+        super().__init__(timeout=None)
         
     async def _handle_server_action(self, interaction: discord.Interaction, action: str):
         username = str(interaction.user)
