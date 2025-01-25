@@ -47,14 +47,15 @@ async def on_ready():
 @commands.has_permissions(manage_messages=True)
 async def peon(ctx):
     await clean_channel(ctx.channel, bot.user,limit=20)
+    logging.debug(f"PEON Bot called for <{str(ctx.channel.name)}>")
     try:
-        gameuid=(str(ctx.channel.name)).split('-')[0],
+        gameuid=(str(ctx.channel.name)).split('-')[0]
         servername=(str(ctx.channel.name)).split('-')[1]
     except:
         gameuid = None
         servername = None
     if gameuid and servername:     
-        view = UserActions(gameuid=gameuid,servername=(servername))
+        view = UserActions(gameuid=gameuid,servername=servername)
         embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.blue())
         embed.set_image(url=bot_image)
         await ctx.channel.send(embed=embed, view=view)
