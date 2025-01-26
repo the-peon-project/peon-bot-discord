@@ -16,7 +16,6 @@ intents.message_content = True
 bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
 
 async def clean_channel(channel, bot_user, limit=10):
-    """Clean bot messages from channel"""
     try:
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
