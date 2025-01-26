@@ -2,6 +2,7 @@ import logging
 import discord
 from . import *
 from .orchestrator import *
+from .shared import *
 
 class AdministratorActions(discord.ui.View):
     def __init__(self):
@@ -50,7 +51,7 @@ class RegisterModal(discord.ui.Modal, title='Register Orchestrator'):
             response_string += "```"
             embed = build_card(title="Registration Request", message=response_string)
         else:
-            embed = build_card_err(err_code="bad.code", command="bad.code", permission="user", note=response['info'])
+            embed = build_card(status='nok', message="Could not get the orchestrator registered")
         await interaction.response.send_message(embed=embed)
 
 class DeregisterConfirmView(discord.ui.View):
