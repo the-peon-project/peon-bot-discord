@@ -154,7 +154,7 @@ def server_backup(url, api_key, server_uid):
     return (requests.put(url, headers=headers)).json()
 
 def server_actions(action,args):
-    logging.info(f"Server action requested: {action}")
+    logging.debug(f"Server action requested: {action}")
     logging.debug("STEP 1 - Check for active orchestrators")
     if len(args) == 0: return { "status" : "error", "err_code" : "srv.param", "command" : action}
     # STEP 1: Check that there are some registered orchestrators
