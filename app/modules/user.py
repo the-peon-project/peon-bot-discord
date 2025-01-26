@@ -3,7 +3,15 @@ import discord
 from . import *
 from .shared import *
 from .orchestrator import *
-        
+
+async def remove_interactions(interaction,keep="0"):
+        channel = interaction.channel
+        logging.debug("Cleaning channel")
+        async for message in channel.history(limit=50):
+            if ((str(message.author)).split('#')[0] == interaction.client.user.name and message.embeds) and (message.id != keep):
+                if message.embeds[0].image.url == bot_image:
+                    await message.delete()
+
 class UserActions(discord.ui.View):
     def __init__(self, gameuid, servername):
         self.gameuid = gameuid
@@ -26,6 +34,8 @@ class UserActions(discord.ui.View):
             embed = build_card(status='ok', message=message)
         else: embed = build_card(status='nok', message=response.get('err_code', "Could not process server request"))
         await interaction.channel.send(embed=embed)
+        await remove_interactions(interaction)
+
 
     @discord.ui.button(label="Start", style=discord.ButtonStyle.success, row=0)
     async def server_start(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -50,4 +60,5 @@ class UserActions(discord.ui.View):
     @discord.ui.button(label="About", style=discord.ButtonStyle.secondary, row=1)
     async def server_about(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
-        await interaction.channel.send(embed=build_about_card())
+        message = await interaction.channel.send(embed=build_about_card())
+        await remove_interactions(interaction,keep=message.id)
