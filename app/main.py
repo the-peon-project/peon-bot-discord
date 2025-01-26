@@ -8,7 +8,7 @@ from modules import *
 from modules.orchestrator import *
 from modules.administrator import *
 from modules.user import *
-from modules.shared import configure_logging
+from modules.shared import *
 
 intents = discord.Intents.default()
 intents.message_content = True
@@ -72,36 +72,9 @@ async def clear(ctx, amount: int = 10):
     # else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
 
 @bot.command(name='about')
-async def get_plans(ctx):
+async def get_about(ctx):
     logging.debug("'About' requested")
-    with open(f"/app/reference/{settings['language']}/about.md", "r") as file:
-        response = file.read()
-    response = response.replace('[BOT_VERSION]',os.environ.get('VERSION', '-.-.-'))
-    if (orchestrators := get_peon_orcs())['status'] == "success":
-        if orchestrators['data']:
-            orcstring = ""
-            for orc in orchestrators['data']:
-                if (orc_response := get_orchestrator_details(url=orc['url'],api_key=orc['key']))['status'] == "success":
-                    info = orc_response['data']
-                    orcstring += f"- Orchestrator: {orc['name']} [{info['version']}](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
-                else:
-                    orcstring += f"- Orchestrator: {orc['name']} [UNKNOWN](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
-            response = response.replace('[ORCHESTRATORS]',f"{orcstring}")
-    try:
-        file_contents = requests.get(games_url).text
-        servers = "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
-        for line in file_contents.splitlines():
-            if re.search('- \[x\]', line):
-                line = re.sub('- \[x\]', '- ', line)
-                line = re.sub('./guides/games/', 'https://docs.warcamp.org/guides/games/', line)
-                line = re.sub('.md', '', line)
-                servers += line + '\n'
-    except:
-        servers = ""
-    response = response.replace('[GAME_SERVERS]',servers)
-    embed = discord.Embed(description=response)
-    embed.set_image(url=bot_image) 
-    await ctx.send(embed=embed)
+    await ctx.send(embed=build_about_card())
 
 # MAIN
 if __name__ == "__main__":
