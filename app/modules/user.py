@@ -11,7 +11,6 @@ class UserActions(discord.ui.View):
         super().__init__(timeout=None)
         
     async def _handle_server_action(self, interaction: discord.Interaction, action: str):
-        """Consolidated method to handle all server actions"""
         username = str(interaction.user)
         nickname = str(interaction.user.display_name)
         logging.info(f"Server {action.upper()} requested by <@{username}> for {self.servername} ({self.gameuid})")
