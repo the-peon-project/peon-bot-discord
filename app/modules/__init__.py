@@ -3,7 +3,7 @@ import json
 import random
 import os
 import re
-import discord
+import sys
 
 # Settings
 base_url = "https://raw.githubusercontent.com/the-peon-project"
@@ -31,20 +31,6 @@ txt_errors = json.load(open(f"/app/reference/{settings['language']}/errors.json"
 def get_quote():
     return random.choice(txt_quotes)
 
-def identify_channel(channel_request,args=tuple()):
-    if channel_request == settings['control_channel']:
-        permission='admin'
-        logging.debug(f" <control channel> - {settings['control_channel']}")
-    else:
-        permission='user'
-        logging.debug(f" <request channel> - {settings['control_channel']}")
-        if args:
-            args = tuple(channel_request.split('-'))[::-1] + args
-        else:
-            args = tuple(channel_request.split('-'))[::-1]
-    args = (permission,) + args
-    return args
-
 def look_for_regex_in_args(regex,args):
     try:
         for argument in args:
@@ -54,14 +40,27 @@ def look_for_regex_in_args(regex,args):
                 return match[0]
     except:
         return None
+    
+def configure_logging():
+    dev_mode = os.environ.get('DEV_MODE', 'disabled')
+    print(f"DEV MODE [{dev_mode}]")
+    # Set up logging to stdout
+    root_logger = logging.getLogger()
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    root_logger.addHandler(stdout_handler)
 
-def build_card(status='err',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
-    if status == 'ok':
-        embed = discord.Embed(description=f"{message}",color=discord.Color.green())
-    elif status == 'nok':
-        embed = discord.Embed(description=f"{message}",color=discord.Color.orange())
-    elif status == 'err':
-        embed = discord.Embed(description=f"{message}",color=discord.Color.red())
-    else:
-        embed = discord.Embed(description=f"{message}",color=discord.Color.blue())
-    return embed
+    # Set the log format and level
+    log_format = '%(asctime)s %(thread)d [%(levelname)s] %(message)s'
+    
+    log_level = logging.DEBUG if dev_mode == 'enabled' else logging.INFO
+    # Configure logging to append to Docker container logs
+    logging.basicConfig(
+        level=log_level,
+        format=log_format,
+        handlers=[stdout_handler],
+        force=True  # This ensures we override any existing configuration
+    )
+    
+    # Ensure discord.py's logger doesn't overwhelm your logs
+    discord_logger = logging.getLogger('discord')
+    discord_logger.setLevel(logging.WARNING)
