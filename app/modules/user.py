@@ -1,6 +1,7 @@
 import logging
 import discord
 from . import *
+from .shared import *
 from .orchestrator import *
         
 class UserActions(discord.ui.View):
@@ -11,11 +12,12 @@ class UserActions(discord.ui.View):
         super().__init__(timeout=None)
         
     async def _handle_server_action(self, interaction: discord.Interaction, action: str):
+        # Send initial response
+        # await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
+        await interaction.response.defer()
         username = str(interaction.user)
         nickname = str(interaction.user.display_name)
         logging.info(f"Server {action.upper()} requested by <@{username}> for {self.servername} ({self.gameuid})")
-        # Send initial response
-        await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
         # Handle API call
         response = server_actions(action=action, args=[self.gameuid, self.servername])
         if response['status'] == 'success':
@@ -47,4 +49,5 @@ class UserActions(discord.ui.View):
 
     @discord.ui.button(label="About", style=discord.ButtonStyle.secondary, row=1)
     async def server_about(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.channel.send(embed=build_card(status='nok', message="This feature is not yet implemented."))
+        await interaction.response.defer()
+        await interaction.channel.send(embed=build_about_card())
