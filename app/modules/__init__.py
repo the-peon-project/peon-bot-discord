@@ -38,7 +38,6 @@ def look_for_regex_in_args(pattern, args):
         if re.match(pattern, arg, re.IGNORECASE):
             logging.debug(f"Found match: {arg}")
             return arg
-    logging.debug("No match found")
     return None
     
 def configure_logging():
