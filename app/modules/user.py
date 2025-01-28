@@ -83,17 +83,17 @@ class UpdateModeSelect(discord.ui.Select):
         options = [
             discord.SelectOption(
                 label="Game Server",
-                value="game",
+                value="server",
                 description="Update the game server files <default>"
             ),
             discord.SelectOption(
                 label="Server Container",
-                value="container",
+                value="image",
                 description="Update the PEON container in which the game server runs."
             ),
             discord.SelectOption(
                 label="Complete Upgrade",
-                value="complete",
+                value="full",
                 description="Update both the game server & the Peon container"
             )
         ]
@@ -122,7 +122,6 @@ class UpdateConfirmView(discord.ui.View):
         self.gameuid = gameuid
         self.servername = servername
 
-
     @discord.ui.button(label="Confirm", style=discord.ButtonStyle.danger)
     async def confirm(self, interaction: discord.Interaction, button: discord.ui.Button):
         await interaction.response.defer()
@@ -131,7 +130,7 @@ class UpdateConfirmView(discord.ui.View):
         logging.info(f"Server {(self.mode).upper()} UPDATE triggered by <@{username}> for {self.servername} ({self.gameuid})")
         response = server_actions(action='update', args=[self.gameuid, self.servername, self.mode])
         if response['status'] == 'success': embed = build_card(status='ok',  message=f"**{(self.mode).upper()} UPDATE** triggered by *@{nickname}*")
-        else: embed = build_card(status='nok', message="**{(self.mode).upper()} UPDATE** triggered by *@{nickname}* FAILED")
+        else: embed = build_card(status='nok', message="**{(self.mode).upper()} upgrade** triggered by *@{nickname}* FAILED")
         await interaction.channel.send(embed=embed)
         await remove_interactions(interaction)
 
