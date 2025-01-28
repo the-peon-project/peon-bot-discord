@@ -96,10 +96,10 @@ class UpdateModeSelect(discord.ui.Select):
         self.view.stop()  # Stop the view to prevent further interactions
         
     async def callback(self, interaction: discord.Interaction):
+        selected_option = next(opt for opt in self.options if opt.value == self.values[0])
         self._disable_select()
         await interaction.response.edit_message(view=self.view)
-        view = UpdateConfirmView(self.values[0], self.gameuid, self.servername)
-        selected_option = next(opt for opt in self.options if opt.value == self.values[0])
+        view = UpdateConfirmView(selected_option.value, self.gameuid, self.servername)
         embed = discord.Embed(description=f"Are you sure you want to perform a *{selected_option.label}* update?",color=discord.Color.yellow())
         #embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
         await interaction.followup.send(embed=embed, view=view)
