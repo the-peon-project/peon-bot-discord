@@ -160,23 +160,25 @@ def server_actions(action,args):
     # STEP 1: Check that there are some registered orchestrators
     if 'error' in (result := get_peon_orcs())['status']: return { "status" : "error", "err_code" : "orc.none", "command" : action}
     peon_orchestrators = result['data']
-    #STEP 2: Get argument information
-    logging.debug("STEP 2 - Check for schedule data")
-    arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
-    if arg_datetime: args.remove(arg_datetime)
-    arg_time = look_for_regex_in_args("^(\d{2})[:h](\d{2})$",args)
-    if arg_time: args.remove(arg_time)
-    arg_interval = look_for_regex_in_args("^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
-    time_unit=""
-    if not arg_interval:
-        if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
-    if arg_interval: 
-        args.remove(arg_interval)
-        arg_interval += time_unit
-    arg_update_mode = look_for_regex_in_args("^(server|image|full)$", args)
-    if arg_update_mode:
-        args.remove(arg_update_mode)
-    if len(args) < 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
+    if action != 'get':
+        #STEP 2: Get argument information
+        logging.debug("STEP 2 - Check for arguments")
+        arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
+        if arg_datetime: args.remove(arg_datetime)
+        arg_time = look_for_regex_in_args("^(\d{2})[:h](\d{2})$",args)
+        if arg_time: args.remove(arg_time)
+        arg_interval = look_for_regex_in_args("^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
+        time_unit=""
+        if not arg_interval:
+            if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
+        if arg_interval: 
+            args.remove(arg_interval)
+            arg_interval += time_unit
+        arg_update_mode = look_for_regex_in_args("^(server|image|full)$", args)
+        if arg_update_mode:
+            args.remove(arg_update_mode)
+        if len(args) < 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
+    else: logging.debug("No arguments required for 'get' action. Skipping to STEP 3.")
     # STEP 3: Get list of servers on orchestrators
     logging.debug("STEP 3 - Collect all servers on all orchestrators")
     ## SCALE ISSUE: If there are lots of Orcs, it could take time (so, if people end up using this, rewrite). Then we need a local DB
@@ -228,7 +230,7 @@ def server_actions(action,args):
     server = server_list[0]
     args.remove(server['servername'])
     if server['game_uid'] in args: args.remove(server['game_uid'])
-    logging.debug(f"STEP 7 - Trigger {action} action on server")
+    logging.debug(f"STEP 7 - Trigger [{action}] action on server")
     serveruid=f"{server['game_uid']}.{server['servername']}"
     orchestrator = next((orc for orc in peon_orchestrators if orc['name'] == server['orchestrator']), None)
     data = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
@@ -255,6 +257,8 @@ def server_actions(action,args):
                     response += f"---\n{data['server_config']}\n"
                 response += "```"
             else:
+                logging.critical("--------------------------- HERE")
+                logging.critical(data)
                 if data["time"] or "time" in args: 
                     if data["server_state"].lower() == 'running':
                         if data["time"] is not None:
