@@ -139,19 +139,19 @@ def get_warplan(peon_orchestrators,game_uid):
     response += "\n```"
     return { "status" : "success", "data" : f"{response}" }
 
-def server_action(url, api_key, server_uid, action, timer={}):
-    logging.debug(f'[server_action] - {action} requested for {server_uid}')
-    url = f"{url}/api/v1/server/{action}/{server_uid}"
-    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    if action == "get":
-        return (requests.get(url, headers=headers)).json()
-    return (requests.put(url, headers=headers,json=timer)).json()
-
 def server_backup(url, api_key, server_uid):
     logging.debug(f'[serverBackup] - {server_uid}]')
     url = f"{url}/api/v1/server/save/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.put(url, headers=headers)).json()
+
+def server_action(url, api_key, server_uid, action, body={}):
+    logging.debug(f'[server_action] - {action} requested for {server_uid}: body {body}')
+    url = f"{url}/api/v1/server/{action}/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    if action == "get":
+        return (requests.get(url, headers=headers)).json()
+    return (requests.put(url, headers=headers,json=body)).json()
 
 def server_actions(action,args):
     logging.debug(f"Server action requested: {action}")
@@ -173,6 +173,9 @@ def server_actions(action,args):
     if arg_interval: 
         args.remove(arg_interval)
         arg_interval += time_unit
+    arg_update_mode = look_for_regex_in_args("^(server|image|full)$", args)
+    if arg_update_mode:
+        args.remove(arg_update_mode)
     if len(args) < 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
     # STEP 3: Get list of servers on orchestrators
     logging.debug("STEP 3 - Collect all servers on all orchestrators")
@@ -266,7 +269,7 @@ def server_actions(action,args):
                     else:
                         response += "\n\t:alarm_clock: Server is not in running state."
         else:
-            timer = {}
+            body = {}
             if arg_time:
                 date_string = (datetime.now(pytz.timezone(settings["timezone"])).date().strftime('%Y-%m-%d'))
                 timestring = re.match("^(\d{2})[:h](\d{2})$",arg_time)
@@ -275,7 +278,7 @@ def server_actions(action,args):
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
                     return { "status" : "error", "err_code" : "schedule.past", "command" : action}
-                timer = {"epoch_time" : f"{epoch}"}
+                body = {"epoch_time" : f"{epoch}"}
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down at ``{timestring}``."
             elif arg_datetime:
                 timestring = re.match("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
@@ -284,13 +287,16 @@ def server_actions(action,args):
                 epoch = int(time_tz.timestamp())
                 if epoch <= int(datetime.now(pytz.timezone(settings["timezone"])).timestamp()):
                     return { "status" : "error", "err_code" : "schedule.past", "command" : action}
-                timer = {"epoch_time" : f"{epoch}"}
+                body = {"epoch_time" : f"{epoch}"}
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down at ``{timestring}``."
             elif arg_interval:
-                timer = { "interval" : f"{arg_interval}" }
+                body = { "interval" : f"{arg_interval}" }
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down in ``{arg_interval}``."
+            elif arg_update_mode:
+                body = { "mode" : f"{arg_update_mode}" }
+                response += f"\n\n\t:arrows_counterclockwise: Warcamp will do a ``{arg_update_mode}`` update."
             # logging.debug("STEP 8 - Permissions check")
-            data = server_action(orchestrator['url'], orchestrator['key'], serveruid, action, timer)
+            data = server_action(orchestrator['url'], orchestrator['key'], serveruid, action, body)
             if "error" in data:
                 return { "status" : "error", "err_code" : "srv.action.error", "command" : action}
             else:
