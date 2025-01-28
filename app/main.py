@@ -55,7 +55,7 @@ async def peon(ctx):
         servername = None
     if gameuid and servername:     
         view = UserActions(gameuid=gameuid,servername=servername)
-        embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.blue())
+        embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.green())
         embed.set_image(url=bot_image)
         await ctx.channel.send(embed=embed, view=view)
     else:

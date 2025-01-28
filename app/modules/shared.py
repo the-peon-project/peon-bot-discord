@@ -21,10 +21,10 @@ def identify_channel(channel_request,args=tuple()):
     return args
 
 def build_card(status='err',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
-    if   status == 'ok':  embed = discord.Embed(description=f"{message}",color=discord.Color.green())
+    if   status == 'ok':  embed = discord.Embed(description=f"{message}",color=discord.Color.blue())
     elif status == 'nok': embed = discord.Embed(description=f"{message}",color=discord.Color.orange())
     elif status == 'err': embed = discord.Embed(description=f"{message}",color=discord.Color.red())
-    else:                 embed = discord.Embed(description=f"{message}",color=discord.Color.blue())
+    else:                 embed = discord.Embed(description=f"{message}")
     return embed
 
 def build_about_card():
