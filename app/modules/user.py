@@ -129,7 +129,7 @@ class UpdateConfirmView(discord.ui.View):
         nickname = str(interaction.user.display_name)
         logging.info(f"Server {(self.mode).upper()} UPDATE triggered by <@{username}> for {self.servername} ({self.gameuid})")
         response = server_actions(action='update', args=[self.gameuid, self.servername, self.mode])
-        if response['status'] == 'success': embed = build_card(status='ok',  message=f"**{(self.mode).upper()} UPDATE** triggered by *@{nickname}*")
+        if response['status'] == 'success': embed = build_card(status='ok',  message=f"**{(self.mode).upper()} upgrade** triggered by *@{nickname}*")
         else: embed = build_card(status='nok', message="**{(self.mode).upper()} upgrade** triggered by *@{nickname}* FAILED")
         await interaction.channel.send(embed=embed)
         await remove_interactions(interaction)
