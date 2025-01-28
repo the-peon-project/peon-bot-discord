@@ -256,22 +256,19 @@ def server_actions(action,args):
                 except:
                     response += f"---\n{data['server_config']}\n"
                 response += "```"
-            else:
-                logging.critical("--------------------------- HERE")
-                logging.critical(data)
-                if data["time"] or "time" in args: 
-                    if data["server_state"].lower() == 'running':
-                        if data["time"] is not None:
-                            today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
-                            stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
-                            response += "\n\t:alarm_clock: Orc will turn off server at ``"
-                            if str(today.date()) == str(stoptime.date()): response += stoptime.strftime("%X %Z")
-                            else: response += stoptime.strftime("%X %Z [%x]")
-                            response += "``"
-                        else:
-                            response += "\n\t:alarm_clock: Server has no shutdown schedule."
+            if data["time"]: 
+                if data["server_state"].lower() == 'running':
+                    if data["time"] is not None:
+                        today = pytz.utc.localize(datetime.today()).astimezone(pytz.timezone(settings["timezone"]))
+                        stoptime = pytz.utc.localize(datetime.fromtimestamp(int(data["time"]))).astimezone(pytz.timezone(settings["timezone"]))
+                        response += "\n\t:alarm_clock: Orc will turn off server at ``"
+                        if str(today.date()) == str(stoptime.date()): response += stoptime.strftime("%X %Z")
+                        else: response += stoptime.strftime("%X %Z [%x]")
+                        response += "``"
                     else:
-                        response += "\n\t:alarm_clock: Server is not in running state."
+                        response += "\n\t:alarm_clock: Server has no shutdown schedule."
+                else:
+                    response += "\n\t:alarm_clock: Server is not in running state."
         else:
             body = {}
             if arg_time:
