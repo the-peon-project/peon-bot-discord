@@ -56,7 +56,8 @@ class UserActions(discord.ui.View):
 
     @discord.ui.button(label="Stop", style=discord.ButtonStyle.danger, row=0)
     async def server_stop(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await self._handle_server_action(interaction, 'stop')
+        await interaction.response.send_modal(StopTimerInputModal(self.gameuid, self.servername))  # Create an instance here
+        await remove_interactions(interaction)
     
     @discord.ui.button(label="Info", style=discord.ButtonStyle.secondary, row=1)
     async def server_info(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -78,6 +79,62 @@ class UserActions(discord.ui.View):
         await interaction.response.edit_message(content="*Getting about info...*", view=self)
         message = await interaction.channel.send(embed=build_about_card())
         await remove_interactions(interaction,keep=message.id)
+
+
+#   ▄████████     ███      ▄██████▄     ▄███████▄ 
+#  ███    ███ ▀█████████▄ ███    ███   ███    ███ 
+#  ███    █▀     ▀███▀▀██ ███    ███   ███    ███ 
+#  ███            ███   ▀ ███    ███   ███    ███ 
+#▀███████████     ███     ███    ███ ▀█████████▀  
+#         ███     ███     ███    ███   ███        
+#   ▄█    ███     ███     ███    ███   ███        
+# ▄████████▀     ▄████▀    ▀██████▀   ▄████▀      
+
+# Orchestrator Registration Modal
+class StopTimerInputModal(discord.ui.Modal, title='Server Stop'):
+    def __init__(self, gameuid: str, servername: str):
+        super().__init__(title='Server Stop')
+        self.gameuid = gameuid
+        self.servername = servername
+        self.stop_timer = discord.ui.TextInput(
+            label='Enter stop time or duration',
+            style=discord.TextStyle.short,
+            placeholder='e.g. 15m,2h,22:00,2025/11/16.21h30 or <empty> for immediate.',
+            required=False,
+            min_length=0,
+            max_length=20
+        )
+        self.add_item(self.stop_timer)  # Add the TextInput to the Modal
+
+    async def on_submit(self, interaction: discord.Interaction):
+        await interaction.response.defer()  # Acknowledge the modal submission
+        username = str(interaction.user)
+        nickname = str(interaction.user.display_name)
+        logging.info(f"Server STOP triggered by <@{username}> for {self.servername} ({self.gameuid})")
+        args=[self.gameuid, self.servername]
+        if self.stop_timer.value:
+            if self.stop_timer.value != "":
+                logging.debug(f"Delayed stop requested as [{self.stop_timer.value}]")
+                args.append(self.stop_timer.value)
+            else: self.stop_timer.value = None
+        response = server_actions(action='stop',args=args)
+        if response['status'] == 'success': 
+            message=f"Server **STOP"
+            if self.stop_timer.value: message += f" ({self.stop_timer.value})"
+            message += f"** triggered by *@{nickname}*"
+            embed = build_card(status='ok', message=message)
+        else: embed = build_card(status='nok', message=response.get('err_code', "Could not process server request"))
+        await interaction.followup.send(embed=embed)  # Use followup instead of channel.send
+        await remove_interactions(interaction)
+
+# ███    █▄     ▄███████▄ ████████▄     ▄████████     ███        ▄████████ 
+# ███    ███   ███    ███ ███   ▀███   ███    ███ ▀█████████▄   ███    ███ 
+# ███    ███   ███    ███ ███    ███   ███    ███    ▀███▀▀██   ███    █▀  
+# ███    ███   ███    ███ ███    ███   ███    ███     ███   ▀  ▄███▄▄▄     
+# ███    ███ ▀█████████▀  ███    ███ ▀███████████     ███     ▀▀███▀▀▀     
+# ███    ███   ███        ███    ███   ███    ███     ███       ███    █▄  
+# ███    ███   ███        ███   ▄███   ███    ███     ███       ███    ███ 
+# ████████▀   ▄████▀      ████████▀    ███    █▀     ▄████▀     ██████████ 
 
 class UpdateModeSelect(discord.ui.Select):
     def __init__(self, gameuid: str, servername: str):
