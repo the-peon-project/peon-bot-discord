@@ -32,15 +32,14 @@ txt_errors = json.load(open(f"/app/reference/{settings['language']}/errors.json"
 def get_quote():
     return random.choice(txt_quotes)
 
-def look_for_regex_in_args(regex,args):
-    try:
-        for argument in args:
-            match = re.search(regex, argument)
-            if match:
-                # logging.debug(f"Found {match[0]}")
-                return match[0]
-    except:
-        return None
+def look_for_regex_in_args(pattern, args):
+    logging.debug(f"Looking for pattern '{pattern}' in args: {args}")
+    for arg in args:
+        if re.match(pattern, arg, re.IGNORECASE):
+            logging.debug(f"Found match: {arg}")
+            return arg
+    logging.debug("No match found")
+    return None
     
 def configure_logging():
     dev_mode = os.environ.get('DEV_MODE', 'disabled')
