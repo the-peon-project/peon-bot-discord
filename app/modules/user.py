@@ -13,6 +13,8 @@ async def remove_interactions(interaction,keep="0",message_prefix=None):
                     await message.delete()
                 elif message.embeds[0].thumbnail and message.embeds[0].thumbnail.url == bot_thumbnail:
                     await message.delete()
+                elif message.embeds[0].color == discord.Color.yellow():
+                    await message.delete()
                 elif message_prefix:
                     if message.content.startswith(message_prefix):
                         await message.delete()
@@ -66,8 +68,8 @@ class UserActions(discord.ui.View):
         await interaction.response.edit_message(view=self)
         view = discord.ui.View()
         view.add_item(UpdateModeSelect(self.gameuid, self.servername))
-        embed = discord.Embed(description="Select an update mode:",color=discord.Color.blue())
-        embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
+        embed = discord.Embed(description="Select an update type:",color=discord.Color.yellow())
+        #embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
         await interaction.followup.send(embed=embed, view=view)
 
     @discord.ui.button(label="About", style=discord.ButtonStyle.secondary, row=1)
@@ -95,12 +97,11 @@ class UpdateModeSelect(discord.ui.Select):
         
     async def callback(self, interaction: discord.Interaction):
         self._disable_select()
-        await interaction.response.edit_message(view=self.view)
         view = UpdateConfirmView(self.values[0], self.gameuid, self.servername)
         selected_option = next(opt for opt in self.options if opt.value == self.values[0])
         embed = discord.Embed(description=f"Are you sure you want to perform a *{selected_option.label}* update?",color=discord.Color.yellow())
-        embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
-        await interaction.followup.send(embed=embed, view=view)
+        #embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
+        await interaction.response.edit_message(embed=embed, view=view)
 
 class UpdateConfirmView(discord.ui.View):
     def __init__(self, mode: str, gameuid: str, servername: str):
