@@ -266,9 +266,9 @@ def server_actions(action,args):
                         else: response += stoptime.strftime("%X %Z [%x]")
                         response += "``"
                     else:
-                        response += "\n\t:alarm_clock: Server has no shutdown schedule."
+                        if "time" in args: response += "\n\t:alarm_clock: Server has no shutdown schedule."
                 else:
-                    response += "\n\t:alarm_clock: Server is not in running state."
+                    if "time" in args: response += "\n\t:alarm_clock: Server is not in running state."
         else:
             body = {}
             if arg_time:
