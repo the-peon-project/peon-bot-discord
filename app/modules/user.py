@@ -24,13 +24,21 @@ class UserActions(discord.ui.View):
         self.message_body = ""
         super().__init__(timeout=None)
         
+    def disable_all_buttons(self):
+        for item in self.children:
+            if isinstance(item, discord.ui.Button):
+                item.disabled = True
+
     async def _handle_server_action(self, interaction: discord.Interaction, action: str):
-        # Send initial response
-        # await interaction.response.send_message(f"*Processing {action} request...*", ephemeral=True)
-        await interaction.response.defer()
+        self.disable_all_buttons()
+        
+        # Show disabled buttons immediately with message
+        await interaction.response.edit_message(view=self)
+        
         username = str(interaction.user)
         nickname = str(interaction.user.display_name)
         logging.info(f"Server {action.upper()} triggered by <@{username}> for {self.servername} ({self.gameuid})")
+        
         # Handle API call
         response = server_actions(action=action, args=[self.gameuid, self.servername])
         if response['status'] == 'success':
@@ -38,9 +46,9 @@ class UserActions(discord.ui.View):
             else: message = f"**{action.capitalize()}** server triggered by *@{nickname}*"
             embed = build_card(status='ok', message=message)
         else: embed = build_card(status='nok', message=response.get('err_code', "Could not process server request"))
-        await interaction.channel.send(embed=embed)
+        
+        await interaction.followup.send(embed=embed)
         await remove_interactions(interaction)
-
 
     @discord.ui.button(label="Start", style=discord.ButtonStyle.success, row=0)
     async def server_start(self, interaction: discord.Interaction, button: discord.ui.Button):
@@ -72,8 +80,9 @@ class UserActions(discord.ui.View):
 
     @discord.ui.button(label="About", style=discord.ButtonStyle.secondary, row=1)
     async def server_about(self, interaction: discord.Interaction, button: discord.ui.Button):
-        await interaction.response.defer()
-        message = await interaction.channel.send(embed=build_about_card())
+        self.disable_all_buttons()
+        await interaction.response.edit_message(content="*Getting about info...*", view=self)
+        message = await interaction.followup.send(embed=build_about_card())
         await remove_interactions(interaction,keep=message.id)
 
 class UpdateModeSelect(discord.ui.Select):
