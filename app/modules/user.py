@@ -69,7 +69,7 @@ class UserActions(discord.ui.View):
         view = discord.ui.View()
         view.add_item(UpdateModeSelect(self.gameuid, self.servername))
         embed = discord.Embed(description="Select an update type:",color=discord.Color.yellow())
-        embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
+        #embed.set_thumbnail(url=f"{bot_thumbnail}")
         await interaction.followup.send(embed=embed, view=view)
 
     @discord.ui.button(label="About", style=discord.ButtonStyle.secondary, row=1)
@@ -97,11 +97,12 @@ class UpdateModeSelect(discord.ui.Select):
         
     async def callback(self, interaction: discord.Interaction):
         self._disable_select()
+        await interaction.response.edit_message(view=self.view)
         view = UpdateConfirmView(self.values[0], self.gameuid, self.servername)
         selected_option = next(opt for opt in self.options if opt.value == self.values[0])
         embed = discord.Embed(description=f"Are you sure you want to perform a *{selected_option.label}* update?",color=discord.Color.yellow())
-        embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
-        await interaction.response.edit_message(embed=embed, view=view)
+        #embed.set_thumbnail(url=f"{bot_thumbnail}")  # Add size parameter
+        await interaction.followup.send(embed=embed, view=view)
 
 class UpdateConfirmView(discord.ui.View):
     def __init__(self, mode: str, gameuid: str, servername: str):
