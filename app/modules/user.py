@@ -4,21 +4,6 @@ from . import *
 from .shared import *
 from .orchestrator import *
 
-async def remove_interactions(interaction,keep="0",message_prefix=None):
-        channel = interaction.channel
-        logging.debug("Cleaning channel")
-        async for message in channel.history(limit=50):
-            if ((str(message.author)).split('#')[0] == interaction.client.user.name and message.embeds) and (message.id != keep):
-                if message.embeds[0].image.url and message.embeds[0].image.url == bot_image:
-                    await message.delete()
-                elif message.embeds[0].thumbnail and message.embeds[0].thumbnail.url == bot_thumbnail:
-                    await message.delete()
-                elif message.embeds[0].color == discord.Color.yellow():
-                    await message.delete()
-                elif message_prefix:
-                    if message.content.startswith(message_prefix):
-                        await message.delete()
-
 class UserActions(discord.ui.View):
     def __init__(self, gameuid, servername):
         self.gameuid = gameuid
