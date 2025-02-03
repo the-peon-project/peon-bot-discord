@@ -47,19 +47,23 @@ async def on_ready():
 async def peon(ctx):
     await clean_channel(ctx.channel, bot.user,limit=20)
     logging.debug(f"PEON Bot called for <{str(ctx.channel.name)}>")
-    try:
-        gameuid=(str(ctx.channel.name)).split('-')[0]
-        servername=(str(ctx.channel.name)).split('-')[1]
-    except:
-        gameuid = None
-        servername = None
-    if gameuid and servername:     
-        view = UserActions(gameuid=gameuid,servername=servername)
-        embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.green())
-        embed.set_image(url=bot_image)
+    embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.green())
+    embed.set_image(url=bot_image)
+    if str(ctx.channel.name) == settings['control_channel']:
+        # Admin channel
+        view = AdministratorActions()
         await ctx.channel.send(embed=embed, view=view)
     else:
-        await ctx.send(embed=build_card(status='nok',message="This doesn't look like a warcamp, warchief!"))
+        # User channel
+        try:
+            gameuid=(str(ctx.channel.name)).split('-')[0]
+            servername=(str(ctx.channel.name)).split('-')[1]
+            if gameuid and servername:     
+                view = UserActions(gameuid=gameuid,servername=servername)
+                await ctx.channel.send(embed=embed, view=view)
+        except:
+            logging.debug(f"Error parsing channel name: {str(ctx.channel.name)}")
+            await ctx.send(embed=build_card(status='nok',message="This doesn't look like a warcamp, warchief!"))
 
 # Command: Clean channel
 @bot.command(name='clear',aliases=cmd_aliases["clear"])
