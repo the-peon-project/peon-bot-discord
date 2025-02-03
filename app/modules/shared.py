@@ -56,3 +56,18 @@ def build_about_card():
     embed = discord.Embed(description=response)
     embed.set_image(url=bot_image) 
     return embed
+
+async def remove_interactions(interaction,keep="0",message_prefix=None):
+        channel = interaction.channel
+        logging.debug("Cleaning channel")
+        async for message in channel.history(limit=50):
+            if ((str(message.author)).split('#')[0] == interaction.client.user.name and message.embeds) and (message.id != keep):
+                if message.embeds[0].image.url and message.embeds[0].image.url == bot_image:
+                    await message.delete()
+                elif message.embeds[0].thumbnail and message.embeds[0].thumbnail.url == bot_thumbnail:
+                    await message.delete()
+                elif message.embeds[0].color == discord.Color.yellow():
+                    await message.delete()
+                elif message_prefix:
+                    if message.content.startswith(message_prefix):
+                        await message.delete()
