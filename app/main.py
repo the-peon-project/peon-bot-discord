@@ -10,6 +10,9 @@ from modules.administrator import *
 from modules.user import *
 from modules.shared import *
 
+print("\n------------------------------\nStarting Discord Bot...\n------------------------------\n")
+configure_logging()
+
 intents = discord.Intents.default()
 intents.message_content = True
 
@@ -82,8 +85,6 @@ async def get_about(ctx):
 # MAIN
 if __name__ == "__main__":
     # Configure logging
-    print("\n------------------------------\nStarting Discord Bot...\n------------------------------\n")
-    configure_logging()
     TOKEN = os.environ.get('DISCORD_TOKEN', None)
     if TOKEN:
         bot.run(TOKEN)
