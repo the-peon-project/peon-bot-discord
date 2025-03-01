@@ -174,7 +174,7 @@ def server_actions(action,args):
         if arg_interval: 
             args.remove(arg_interval)
             arg_interval += time_unit
-        arg_update_mode = look_for_regex_in_args("^(server|image|full)$", args)
+        arg_update_mode = look_for_regex_in_args("^(server|image|full|reinit)$", args)
         if arg_update_mode:
             args.remove(arg_update_mode)
         if len(args) < 1: return { "status" : "error", "err_code" : "srv.param", "command" : action}
