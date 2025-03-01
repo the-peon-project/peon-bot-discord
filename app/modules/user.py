@@ -128,7 +128,8 @@ class UpdateModeSelect(discord.ui.Select):
         options = [
             discord.SelectOption(label="Game Server",value="server",description="Update the game server files <default>"),
             discord.SelectOption(label="Server Container",value="image",description="Update the PEON container in which the game server runs."),
-            discord.SelectOption(label="Complete Upgrade",value="full",description="Update both the game server & the Peon container")
+            discord.SelectOption(label="Complete Upgrade",value="full",description="Update both the game server & the Peon container"),
+            discord.SelectOption(label="Re-Initialise",value="reinit",description="Remove the server files (keeping user files) and run a full update/reinstall of server")
         ]
         super().__init__(placeholder='Select update mode...',min_values=1,max_values=1,options=options)
         self.disabled = False  # Add initial disabled state
