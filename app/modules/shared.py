@@ -71,3 +71,15 @@ async def remove_interactions(interaction,keep="0",message_prefix=None):
                 elif message_prefix:
                     if message.content.startswith(message_prefix):
                         await message.delete()
+
+async def replace_interaction_with_result(interaction: discord.Interaction, result_embed: discord.Embed, ephemeral: bool = False):
+    """Replace an interactive message with a simple result message"""
+    try:
+        # Edit the original message to remove all interactions and show result
+        await interaction.edit_original_response(embed=result_embed, view=None)
+    except:
+        # Fallback: send a followup if editing fails
+        await interaction.followup.send(embed=result_embed, ephemeral=ephemeral)
+    
+    # Clean up any related messages
+    await remove_interactions(interaction)

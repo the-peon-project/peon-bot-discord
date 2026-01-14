@@ -1,9 +1,11 @@
-#/usr/bin/python3
+#!/usr/bin/python3
 import os
 import sys
 import logging
 import discord
 from discord.ext import commands
+from discord import app_commands
+from typing import Literal, Optional
 from modules import *
 from modules.orchestrator import *
 from modules.administrator import *
@@ -15,80 +17,500 @@ configure_logging()
 
 intents = discord.Intents.default()
 intents.message_content = True
+intents.guilds = True
 
-bot = commands.Bot(command_prefix=settings['command_prefix'],intents=intents)
+class PeonBot(commands.Bot):
+    def __init__(self):
+        super().__init__(
+            command_prefix=settings.get('command_prefix', '!'),
+            intents=intents,
+            help_command=None
+        )
+    
+    async def setup_hook(self):
+        """Called when the bot is starting up"""
+        # Add persistent views
+        self.add_view(PersistentAdministratorView())
+        self.add_view(PersistentUserView())
+        logging.info("Added persistent views")
+    
+    async def on_ready(self):
+        logging.info(f'Connected as bot named @{self.user.name}. Running PEON init tasks...')
+        
+        # Sync slash commands
+        try:
+            synced = await self.tree.sync()
+            logging.info(f"Synced {len(synced)} command(s)")
+        except Exception as e:
+            logging.error(f"Failed to sync commands: {e}")
+        
+        # Clean channels
+        for guild in self.guilds:
+            for channel in guild.text_channels:
+                permissions = channel.permissions_for(guild.me)
+                if permissions.send_messages and permissions.read_message_history:
+                    await clean_channel(channel, self.user, limit=100)
+        
+        # Notify admin channel
+        for guild in self.guilds:
+            admin_channel = discord.utils.get(guild.text_channels, name=settings['control_channel'])
+            if admin_channel:
+                embed = discord.Embed(
+                    title="🤖 PEON Bot Ready",
+                    description="Bot has connected and is ready for commands!",
+                    color=discord.Color.green()
+                )
+                await admin_channel.send(embed=embed)
+                break
+
+bot = PeonBot()
 
 async def clean_channel(channel, bot_user, limit=10):
     try:
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
-                if message.embeds[0].image.url == bot_image:
+                if message.embeds[0].image and message.embeds[0].image.url == bot_image:
                     await message.delete()
-            elif (message.content.startswith(settings['command_prefix']) and message.author != bot_user): 
+            elif (message.content.startswith(settings.get('command_prefix', '!')) and message.author != bot_user): 
                 await message.delete()
         return True
     except Exception as e:
         logging.error(f"Error cleaning channel {channel.name}: {e}")
         return False
 
-# Startup message
-@bot.event
-async def on_ready():
-    logging.info(f'Connected as bot named @{bot.user.name}. Running PEON init tasks...')
-    for channel in bot.get_all_channels():
-        if isinstance(channel, discord.TextChannel):
-            permissions = channel.permissions_for(channel.guild.me)
-            if permissions.send_messages:
-                await clean_channel(channel, bot.user, limit=100)
-        if settings['control_channel'] == str(channel.name): control_channel = channel
-    logging.info(f"Informing bot readiness to admin channel <{settings['control_channel']}>")
-    await control_channel.send(" has connected to the server.")
+# Autocomplete functions
+async def server_autocomplete(interaction: discord.Interaction, current: str):
+    """Autocomplete for server names"""
+    try:
+        if 'error' in (result := get_peon_orcs())['status']:
+            return []
+        
+        all_servers = []
+        for orchestrator in result['data']:
+            try:
+                servers = get_servers(orchestrator['url'], orchestrator['key'])
+                for server in servers:
+                    server_name = f"{server.get('game_uid', '')}.{server.get('servername', '')}"
+                    all_servers.append(app_commands.Choice(name=server_name, value=server_name))
+            except:
+                continue
+        
+        # Filter based on current input
+        filtered = [choice for choice in all_servers if current.lower() in choice.name.lower()][:25]
+        return filtered
+    except:
+        return []
 
-# Command: User interaction
-@bot.command(name='peon',aliases=cmd_aliases["peon"])
-@commands.has_permissions(manage_messages=True)
-async def peon(ctx):
-    await clean_channel(ctx.channel, bot.user,limit=20)
-    logging.debug(f"PEON Bot called for <{str(ctx.channel.name)}>")
-    embed = discord.Embed(description=f"*{get_quote()}*",color=discord.Color.green())
+async def game_type_autocomplete(interaction: discord.Interaction, current: str):
+    """Autocomplete for game types"""
+    try:
+        if 'error' in (result := get_peon_orcs())['status']:
+            return []
+        
+        orchestrator = result['data'][0]
+        plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
+        
+        if plans_result['status'] != 'success':
+            return []
+        
+        game_types = []
+        for plan in plans_result['data']:
+            game_uid = plan.get('game_uid', '')
+            title = plan.get('title', game_uid)
+            if game_uid:
+                game_types.append(app_commands.Choice(name=f"{title} ({game_uid})", value=game_uid))
+        
+        # Filter based on current input
+        filtered = [choice for choice in game_types if current.lower() in choice.name.lower()][:25]
+        return filtered
+    except:
+        return []
+
+# Slash Commands
+@bot.tree.command(name="peon", description="🤖 Summon a peon for server management")
+@app_commands.describe(
+    channel_type="Specify channel type (admin/server) or let bot auto-detect"
+)
+async def peon_slash(
+    interaction: discord.Interaction, 
+    channel_type: Optional[Literal["admin", "server"]] = None
+):
+    await interaction.response.defer()
+    
+    # Auto-detect channel type if not specified
+    if not channel_type:
+        if str(interaction.channel.name) == settings['control_channel']:
+            channel_type = "admin"
+        else:
+            try:
+                parts = str(interaction.channel.name).split('-')
+                if len(parts) >= 2:
+                    channel_type = "server"
+                else:
+                    channel_type = "admin"
+            except:
+                channel_type = "admin"
+    
+    embed = discord.Embed(
+        title="🛡️ PEON Reporting for Duty",
+        description=f"*{get_quote()}*",
+        color=discord.Color.green()
+    )
     embed.set_image(url=bot_image)
-    if str(ctx.channel.name) == settings['control_channel']:
-        # Admin channel
-        view = AdministratorActions()
-        await ctx.channel.send(embed=embed, view=view)
+    embed.set_footer(text="Use the buttons below or try /help for more commands")
+    
+    if channel_type == "admin":
+        view = EnhancedAdministratorView()
+        embed.add_field(name="🔧 Admin Mode", value="Full administrative controls available", inline=False)
+        await interaction.followup.send(embed=embed, view=view)
     else:
-        # User channel
         try:
-            gameuid=(str(ctx.channel.name)).split('-')[0]
-            servername=(str(ctx.channel.name)).split('-')[1]
-            if gameuid and servername:     
-                view = UserActions(gameuid=gameuid,servername=servername)
-                await ctx.channel.send(embed=embed, view=view)
+            gameuid, servername = str(interaction.channel.name).split('-')[:2]
+            view = EnhancedUserView(gameuid=gameuid, servername=servername)
+            embed.add_field(name="🎮 Server Mode", value=f"Managing **{gameuid}.{servername}**", inline=False)
+            await interaction.followup.send(embed=embed, view=view)
         except:
-            logging.debug(f"Error parsing channel name: {str(ctx.channel.name)}")
-            await ctx.send(embed=build_card(status='nok',message="This doesn't look like a warcamp, warchief!"))
+            embed = build_card(status='nok', message="❌ This doesn't look like a warcamp channel!\n\nChannels should be named: `game-servername`")
+            await interaction.followup.send(embed=embed)
 
-# Command: Clean channel
-@bot.command(name='clear',aliases=cmd_aliases["clear"])
-@commands.has_permissions(manage_messages=True)
-async def clear(ctx, amount: int = 10):
-    await ctx.channel.purge(limit=amount + 1)
-    #args = identify_channel(channel_request=ctx.channel.name)
-    # if args[0] == 'admin': await ctx.channel.purge(limit=amount + 1)
-    # else: await ctx.send(embed=build_card_err(err_code="unauthorized",command="auth",permission=args[0]))
+@bot.tree.command(name="server", description="🎮 Quick server management commands")
+@app_commands.describe(
+    action="What action to perform on the server",
+    server="Server to target (auto-complete available)",
+    timer="For stop: time/duration (e.g., 15m, 2h, 22:00)",
+    mode="For update: update mode (server/image/full/reinit)"
+)
+@app_commands.autocomplete(server=server_autocomplete)
+async def server_command(
+    interaction: discord.Interaction,
+    action: Literal["start", "stop", "restart", "info", "update", "backup"],
+    server: str = None,
+    timer: Optional[str] = None,
+    mode: Optional[Literal["server", "image", "full", "reinit"]] = None
+):
+    await interaction.response.defer()
+    
+    # Auto-detect server from channel if not provided
+    if not server:
+        try:
+            gameuid, servername = str(interaction.channel.name).split('-')[:2]
+            server = f"{gameuid}.{servername}"
+        except:
+            embed = build_card(status='nok', message="❌ Could not auto-detect server from channel name.\nPlease specify server parameter.")
+            await interaction.followup.send(embed=embed)
+            return
+    
+    # Build args for server_actions function
+    server_parts = server.split('.')
+    if len(server_parts) != 2:
+        embed = build_card(status='nok', message="❌ Server format should be: `game.servername`")
+        await interaction.followup.send(embed=embed)
+        return
+    
+    args = [server_parts[0], server_parts[1]]  # gameuid, servername
+    
+    if timer and action == "stop":
+        args.append(timer)
+    elif mode and action == "update":
+        args.append(mode)
+    
+    # Handle special cases
+    if action == "backup":
+        if 'error' in (result := get_peon_orcs())['status']:
+            embed = build_card(status='nok', message="No orchestrators registered")
+            await interaction.followup.send(embed=embed)
+            return
+        
+        orchestrator = result['data'][0]
+        backup_result = server_get_save_download(orchestrator['url'], orchestrator['key'], server)
+        
+        if backup_result['status'] == 'success':
+            embed = build_card(
+                status='ok',
+                title="📦 Server Backup Ready",
+                message=f"Backup for **{server}** is ready!\n\n🔗 [Download Here]({backup_result['download_url']})"
+            )
+        else:
+            embed = build_card(status='nok', message=f"Backup failed: {backup_result.get('message', 'Unknown error')}")
+        
+        await interaction.followup.send(embed=embed)
+        return
+    
+    # Execute server action
+    response = server_actions(action=action, args=args)
+    username = interaction.user.display_name
+    
+    if response['status'] == 'success':
+        if action == 'info':
+            embed = build_card(status='ok', title=f"📊 {server} Status", message=response['data'])
+        else:
+            embed = build_card(
+                status='ok',
+                title=f"✅ Server {action.title()} Complete",
+                message=f"**{action.upper()}** action completed for **{server}** by *@{username}*"
+            )
+    else:
+        embed = build_card(
+            status='nok',
+            title=f"❌ Server {action.title()} Failed",
+            message=f"Error: {response.get('err_code', 'Unknown error')}"
+        )
+    
+    await interaction.followup.send(embed=embed)
 
-@bot.command(name='about')
-async def get_about(ctx):
-    logging.debug("'About' requested")
-    await ctx.send(embed=build_about_card())
+@bot.tree.command(name="create", description="🏗️ Create a new game server")
+@app_commands.describe(
+    game_type="Type of game server to create",
+    server_name="Name for the new server",
+    description="Optional description for the server"
+)
+@app_commands.autocomplete(game_type=game_type_autocomplete)
+async def create_server(
+    interaction: discord.Interaction,
+    game_type: str,
+    server_name: str,
+    description: Optional[str] = None
+):
+    await interaction.response.defer()
+    
+    if 'error' in (result := get_peon_orcs())['status']:
+        embed = build_card(status='nok', message="No orchestrators registered")
+        await interaction.followup.send(embed=embed)
+        return
+    
+    orchestrator = result['data'][0]
+    user_settings = {}
+    if description:
+        user_settings['description'] = description
+    
+    create_result = server_create(
+        orchestrator['url'],
+        orchestrator['key'],
+        game_type,
+        server_name,
+        user_settings
+    )
+    
+    if create_result['status'] == 'success':
+        embed = build_card(
+            status='ok',
+            title="🎉 Server Created Successfully!",
+            message=f"**{game_type}.{server_name}** has been created!\n\n🎮 Game: {game_type}\n📝 Name: {server_name}"
+        )
+        if description:
+            embed.add_field(name="📄 Description", value=description, inline=False)
+    else:
+        # Check if it's a plan availability issue
+        error_message = create_result.get('message', 'Unknown error')
+        
+        # Add additional debugging for 404 errors
+        if '404' in error_message or 'NOT FOUND' in error_message:
+            # Check available plans
+            plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
+            if plans_result['status'] == 'success' and game_type not in plans_result['data']:
+                error_message += f"\n\n**Available games:** {', '.join(plans_result['data'])}"
+            else:
+                error_message += f"\n\n**Connectivity issue detected.** Use `/debug test_connectivity` to diagnose."
+        
+        embed = build_card(
+            status='nok',
+            title="❌ Server Creation Failed",
+            message=f"There was an issue creating your server.\n\n**Error Details**\n{error_message}"
+        )
+    
+    # Replace the deferred interaction with the result
+    await interaction.followup.send(embed=embed)
+
+@bot.tree.command(name="list", description="📋 List servers and orchestrators")
+@app_commands.describe(
+    list_type="What to list"
+)
+async def list_command(
+    interaction: discord.Interaction,
+    list_type: Literal["servers", "orchestrators", "plans"]
+):
+    await interaction.response.defer()
+    
+    if list_type == "orchestrators":
+        if 'error' in (result := get_peon_orcs())['status']:
+            embed = build_card(status='nok', message="No orchestrators registered")
+        else:
+            orcs_text = "**Registered Orchestrators:**\n"
+            for orc in result['data']:
+                # Test connection
+                orc_details = get_orchestrator_details(orc['url'], orc['key'])
+                status = "🟢 Online" if orc_details['status'] == 'success' else "🔴 Offline"
+                orcs_text += f"• **{orc['name']}** - {status}\n  📡 {orc['url']}\n"
+            embed = build_card(status='ok', title="🏢 Orchestrators", message=orcs_text)
+    
+    elif list_type == "plans":
+        if 'error' in (result := get_peon_orcs())['status']:
+            embed = build_card(status='nok', message="No orchestrators registered")
+            await interaction.followup.send(embed=embed)
+            return
+        
+        orchestrator = result['data'][0]
+        plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
+        
+        if plans_result['status'] == 'success':
+            plans_text = "**Available Game Plans:**\n"
+            for plan in plans_result['data'][:15]:  # Limit for embed
+                title = plan.get('title', 'Unknown')
+                game_uid = plan.get('game_uid', 'unknown')
+                plans_text += f"🎮 **{title}** (`{game_uid}`)\n"
+            
+            if len(plans_result['data']) > 15:
+                plans_text += f"\n... and {len(plans_result['data']) - 15} more plans"
+            
+            embed = build_card(status='ok', title="📚 Game Plans", message=plans_text)
+        else:
+            embed = build_card(status='nok', message="Failed to get plans list")
+    
+    else:  # servers
+        if 'error' in (result := get_peon_orcs())['status']:
+            embed = build_card(status='nok', message="No orchestrators registered")
+        else:
+            servers_text = "**All Servers:**\n"
+            for orchestrator in result['data']:
+                try:
+                    servers = get_servers(orchestrator['url'], orchestrator['key'])
+                    servers_text += f"\n**🏢 {orchestrator['name']}:**\n"
+                    for server in servers:
+                        status_emoji = "🟢" if server.get('server_state', '').lower() == 'running' else "🔴"
+                        game_type = server.get('game_uid', 'unknown')
+                        name = server.get('servername', 'unknown')
+                        servers_text += f"  {status_emoji} **{game_type}.{name}** [{server.get('server_state', 'unknown')}]\n"
+                except:
+                    servers_text += f"\n**🏢 {orchestrator['name']}:** (unavailable)\n"
+            
+            embed = build_card(status='ok', title="🖥️ Server Status", message=servers_text)
+    
+    await interaction.followup.send(embed=embed)
+
+@bot.tree.command(name="about", description="ℹ️ Show information about PEON Bot")
+async def about_command(interaction: discord.Interaction):
+    await interaction.response.send_message(embed=build_about_card())
+
+@bot.tree.command(name="help", description="❓ Show help information")
+async def help_command(interaction: discord.Interaction):
+    embed = discord.Embed(
+        title="🤖 PEON Bot Help",
+        description="Welcome to the PEON Project Discord Bot!",
+        color=discord.Color.blue()
+    )
+    
+    embed.add_field(
+        name="🎮 Server Commands",
+        value="• `/server` - Quick server actions\n• `/create` - Create new servers\n• `/list servers` - Show all servers",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="🏢 Management Commands",
+        value="• `/peon` - Main interface\n• `/list orchestrators` - Show orchestrators\n• `/list plans` - Show game plans",
+        inline=False
+    )
+    
+    embed.add_field(
+        name="💡 Tips",
+        value="• Use `/peon` in admin channels for full controls\n• Use `/peon` in game channels for server controls\n• Most commands support auto-completion",
+        inline=False
+    )
+    
+    embed.set_footer(text="Use slash commands (/) for the best experience!")
+    await interaction.response.send_message(embed=embed)
+
+# Legacy support for existing prefix commands (optional)
+@bot.command(name='peon')
+async def legacy_peon(ctx):
+    embed = discord.Embed(
+        title="🔄 Command Updated!",
+        description="This bot now uses **Slash Commands** for a better experience!\n\n✨ Try `/peon` instead of `!peon`",
+        color=discord.Color.gold()
+    )
+    embed.add_field(name="🚀 New Features", value="• Auto-completion\n• Better help system\n• Cleaner interface", inline=False)
+    await ctx.send(embed=embed, delete_after=10)
+
+@bot.tree.command(name="debug", description="🔧 Debug orchestrator connectivity and plans")
+@app_commands.describe(
+    action="Debug action to perform"
+)
+@app_commands.choices(action=[
+    app_commands.Choice(name="test_connectivity", value="test_connectivity"),
+    app_commands.Choice(name="list_plans", value="list_plans")
+])
+async def debug_command(
+    interaction: discord.Interaction,
+    action: str
+):
+    await interaction.response.defer()
+    
+    if 'error' in (result := get_peon_orcs())['status']:
+        embed = build_card(status='nok', message="No orchestrators registered")
+        await interaction.followup.send(embed=embed)
+        return
+    
+    orchestrator = result['data'][0]
+    
+    if action == "test_connectivity":
+        from modules.orchestrator import test_orchestrator_connectivity
+        test_result = test_orchestrator_connectivity(orchestrator['url'], orchestrator['key'])
+        
+        if test_result['status'] == 'success':
+            embed = build_card(
+                status='ok',
+                title="🔧 Orchestrator Connectivity Test",
+                message=f"**Connection Status:** ✅ Connected\n**Available Plans:** {', '.join(test_result['available_plans'])}"
+            )
+        else:
+            embed = build_card(
+                status='nok',
+                title="🔧 Orchestrator Connectivity Test",
+                message=f"**Connection Failed:** {test_result.get('message', 'Unknown error')}"
+            )
+    
+    elif action == "list_plans":
+        plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
+        
+        if plans_result['status'] == 'success':
+            embed = build_card(
+                status='ok',
+                title="📋 Available Game Plans",
+                message=f"**Available Games:** {', '.join(plans_result['data'])}"
+            )
+        else:
+            embed = build_card(
+                status='nok',
+                title="📋 Available Game Plans",
+                message=f"**Error:** {plans_result.get('message', 'Unknown error')}"
+            )
+    
+    await interaction.followup.send(embed=embed)
+
+# Error handling
+@bot.tree.error
+async def on_app_command_error(interaction: discord.Interaction, error: app_commands.AppCommandError):
+    if isinstance(error, app_commands.CommandOnCooldown):
+        embed = build_card(status='nok', message=f"⏰ Command on cooldown. Try again in {error.retry_after:.2f} seconds.")
+    elif isinstance(error, app_commands.MissingPermissions):
+        embed = build_card(status='nok', message="❌ You don't have permission to use this command.")
+    else:
+        embed = build_card(status='nok', message=f"❌ An error occurred: {str(error)}")
+        logging.error(f"App command error: {error}")
+    
+    try:
+        if interaction.response.is_done():
+            await interaction.followup.send(embed=embed, ephemeral=True)
+        else:
+            await interaction.response.send_message(embed=embed, ephemeral=True)
+    except:
+        pass
 
 # MAIN
 if __name__ == "__main__":
-    # Configure logging
     TOKEN = os.environ.get('DISCORD_TOKEN', None)
     if TOKEN:
         bot.run(TOKEN)
     else:
         logging.critical("Please create and configure a valid Discord token.")
-        exit_status = 2
-        sys.exit(exit_status)
+        sys.exit(2)

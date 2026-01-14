@@ -68,10 +68,148 @@ def get_orchestrator_details(url, api_key):
         return {"status": "error", "message": str(e)}
 
 # Services Get users in a certain group
+def deregister_peon_orc(orc_name):
+    try:
+        orchestrators = get_peon_orcs()
+        if orchestrators["status"] == "error":
+            return orchestrators
+        orchestrators = orchestrators["data"]
+        updated_orchestrators = [orc for orc in orchestrators if orc["name"] != orc_name]
+        if len(updated_orchestrators) == len(orchestrators):
+            return {"status": "error", "info": "Orchestrator not found."}
+        config_file = "/app/config/peon.orchestrators.json"
+        with open(config_file, 'w') as file:
+            json.dump(updated_orchestrators, file, indent=4)
+        return {"status": "success", "info": f"Orchestrator '{orc_name}' has been deregistered."}
+    except Exception as e:
+        logging.error(f"An error occurred: {e}")
+        return {"status": "error", "info": str(e)}
+
 def get_servers(url, api_key):
     url = f"{url}/api/v1/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     return (requests.get(url, headers=headers)).json()
+
+def import_servers(url, api_key):
+    url = f"{url}/api/v1/servers"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    try:
+        response = requests.put(url, headers=headers)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error importing servers: {e}")
+        return {"status": "error", "message": str(e)}
+
+def get_all_plans(url, api_key):
+    url = f"{url}/api/v1/plans"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error getting plans: {e}")
+        return {"status": "error", "message": str(e)}
+
+def update_plans(url, api_key):
+    url = f"{url}/api/v1/plans"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    try:
+        response = requests.put(url, headers=headers)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error updating plans: {e}")
+        return {"status": "error", "message": str(e)}
+
+def server_create(url, api_key, game_uid, warcamp_name, user_settings={}):
+    server_uid = f"{game_uid}.{warcamp_name}"
+    endpoint_url = f"{url}/api/v1/server/create/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    body = {"game_uid": game_uid, "warcamp": warcamp_name, **user_settings}
+    
+    # Log the request details for debugging
+    logging.info(f"Creating server: {server_uid}")
+    logging.info(f"Request URL: {endpoint_url}")
+    logging.info(f"Request headers: {headers}")
+    logging.info(f"Request body: {body}")
+    
+    try:
+        response = requests.put(endpoint_url, headers=headers, json=body)
+        logging.info(f"Response status: {response.status_code}")
+        if response.status_code != 200:
+            logging.error(f"Response text: {response.text}")
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error creating server: {e}")
+        if hasattr(e, 'response') and e.response is not None:
+            logging.error(f"Response content: {e.response.text}")
+        return {"status": "error", "message": str(e)}
+
+def test_orchestrator_connectivity(url, api_key):
+    """Test connectivity to orchestrator and list available plans"""
+    try:
+        # Test basic connectivity
+        orchestrator_url = f"{url}/api/v1/orchestrator"
+        headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+        response = requests.get(orchestrator_url, headers=headers)
+        response.raise_for_status()
+        
+        logging.info(f"Orchestrator connectivity OK: {response.json()}")
+        
+        # Get available plans
+        plans_url = f"{url}/api/v1/plans"
+        plans_response = requests.get(plans_url, headers=headers)
+        plans_response.raise_for_status()
+        
+        plans = plans_response.json()
+        logging.info(f"Available plans: {plans}")
+        
+        return {
+            "status": "success",
+            "orchestrator_info": response.json(),
+            "available_plans": plans
+        }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error testing orchestrator connectivity: {e}")
+        return {"status": "error", "message": str(e)}
+
+def server_delete(url, api_key, server_uid, action="destroy", eradicate=False):
+    url = f"{url}/api/v1/server/{action}/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    body = {"eradicate": eradicate} if eradicate else {}
+    try:
+        response = requests.delete(url, headers=headers, json=body)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error deleting server: {e}")
+        return {"status": "error", "message": str(e)}
+
+def server_get_save_download(url, api_key, server_uid):
+    url = f"{url}/api/v1/server/save/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    try:
+        response = requests.get(url, headers=headers)
+        response.raise_for_status()
+        return { "status" : "success", "download_url" : url }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error getting server download: {e}")
+        return {"status": "error", "message": str(e)}
+
+def server_update_description(url, api_key, server_uid, description):
+    url = f"{url}/api/v1/server/description/{server_uid}"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    body = {"description": description}
+    try:
+        response = requests.put(url, headers=headers, json=body)
+        response.raise_for_status()
+        return { "status" : "success", "data" : response.json() }
+    except requests.exceptions.RequestException as e:
+        logging.error(f"Error updating server description: {e}")
+        return {"status": "error", "message": str(e)}
 
 def get_servers_all(peon_orchestrators):
     response=""
