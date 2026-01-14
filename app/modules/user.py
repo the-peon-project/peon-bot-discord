@@ -244,7 +244,7 @@ class EnhancedUserView(discord.ui.View):
     async def server_about(self, interaction: discord.Interaction, button: discord.ui.Button):
         self._disable_all_buttons()
         await interaction.response.edit_message(content="*Getting system information...*", view=self)
-        message = await interaction.channel.send(embed=build_about_card())
+        message = await interaction.channel.send(embed=await build_about_card())
         await remove_interactions(interaction, keep=message.id)
 
 # Enhanced Modal Classes
@@ -664,7 +664,7 @@ class EnhancedDeleteConfirmView(discord.ui.View):
     async def server_about(self, interaction: discord.Interaction, button: discord.ui.Button):
         self._disable_all_buttons()
         await interaction.response.edit_message(content="*Getting about info...*", view=self)
-        message = await interaction.channel.send(embed=build_about_card())
+        message = await interaction.channel.send(embed=await build_about_card())
         await remove_interactions(interaction,keep=message.id)
         
     @discord.ui.button(label="Backup", style=discord.ButtonStyle.primary, row=2)

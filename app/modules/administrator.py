@@ -67,7 +67,7 @@ class EnhancedAdministratorView(discord.ui.View):
         for orchestrator in result['data']:
             try:
                 servers = get_servers(orchestrator['url'], orchestrator['key'])
-                orc_status = get_orchestrator_details(orchestrator['url'], orchestrator['key'])
+                orc_status = await get_orchestrator_details_async(orchestrator['url'], orchestrator['key'])
                 
                 if orc_status['status'] == 'success':
                     status_emoji = "🟢"
@@ -270,7 +270,7 @@ class EnhancedAdministratorView(discord.ui.View):
         else:
             online_count = 0
             for orc in result['data']:
-                orc_status = get_orchestrator_details(orc['url'], orc['key'])
+                orc_status = await get_orchestrator_details_async(orc['url'], orc['key'])
                 if orc_status['status'] == 'success':
                     online_count += 1
             
@@ -319,7 +319,7 @@ class EnhancedRegisterModal(discord.ui.Modal, title='🏢 Register New Orchestra
         logging.info(f"Orchestrator registration attempt: {self.orchestrator_name.value} at {self.orchestrator_url.value}")
         
         # Test connection first
-        test_result = get_orchestrator_details(self.orchestrator_url.value, self.orchestrator_api_key.value)
+        test_result = await get_orchestrator_details_async(self.orchestrator_url.value, self.orchestrator_api_key.value)
         
         if test_result['status'] != 'success':
             embed = discord.Embed(
@@ -385,12 +385,10 @@ class EnhancedDeregisterSelect(discord.ui.Select):
         try:
             if (orchestrators := get_peon_orcs())["status"] == "success":
                 for orc in orchestrators['data']:
-                    # Test connection status
-                    status = get_orchestrator_details(orc['url'], orc['key'])
-                    status_emoji = "🟢" if status['status'] == 'success' else "🔴"
-                    
+                    # Don't test connection in __init__ to avoid blocking
+                    # Status will be checked during the actual callback
                     options.append(discord.SelectOption(
-                        label=f"{status_emoji} {orc['name']}",
+                        label=orc['name'],
                         value=orc['name'],
                         description=f"URL: {orc['url'][:50]}{'...' if len(orc['url']) > 50 else ''}"
                     ))

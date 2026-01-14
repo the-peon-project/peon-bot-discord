@@ -338,7 +338,7 @@ async def list_command(
             orcs_text = "**Registered Orchestrators:**\n"
             for orc in result['data']:
                 # Test connection
-                orc_details = get_orchestrator_details(orc['url'], orc['key'])
+                orc_details = await get_orchestrator_details_async(orc['url'], orc['key'])
                 status = "🟢 Online" if orc_details['status'] == 'success' else "🔴 Offline"
                 orcs_text += f"• **{orc['name']}** - {status}\n  📡 {orc['url']}\n"
             embed = build_card(status='ok', title="🏢 Orchestrators", message=orcs_text)
@@ -389,7 +389,7 @@ async def list_command(
 
 @bot.tree.command(name="about", description="ℹ️ Show information about PEON Bot")
 async def about_command(interaction: discord.Interaction):
-    await interaction.response.send_message(embed=build_about_card())
+    await interaction.response.send_message(embed=await build_about_card())
 
 @bot.tree.command(name="help", description="❓ Show help information")
 async def help_command(interaction: discord.Interaction):

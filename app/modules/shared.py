@@ -4,7 +4,7 @@ import requests
 import os
 import discord
 from . import *
-from .orchestrator import get_peon_orcs, get_orchestrator_details
+from .orchestrator import get_peon_orcs, get_orchestrator_details, get_orchestrator_details_async
 
 def identify_channel(channel_request,args=tuple()):
     if channel_request == settings['control_channel']:
@@ -27,7 +27,7 @@ def build_card(status='err',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEE
     else:                 embed = discord.Embed(description=f"{message}")
     return embed
 
-def build_about_card():
+async def build_about_card():
     with open(f"/app/reference/{settings['language']}/about.md", "r") as file:
         response = file.read()
     response = response.replace('[BOT_VERSION]',os.environ.get('VERSION', '-.-.-'))
@@ -35,7 +35,7 @@ def build_about_card():
         if orchestrators['data']:
             orcstring = ""
             for orc in orchestrators['data']:
-                if (orc_response := get_orchestrator_details(url=orc['url'],api_key=orc['key']))['status'] == "success":
+                if (orc_response := await get_orchestrator_details_async(url=orc['url'],api_key=orc['key']))['status'] == "success":
                     info = orc_response['data']
                     orcstring += f"- Orchestrator: {orc['name']} [{info['version']}](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
                 else:

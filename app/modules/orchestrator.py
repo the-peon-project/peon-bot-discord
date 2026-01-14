@@ -3,6 +3,7 @@ import logging
 from datetime import datetime
 import pytz
 import requests
+import aiohttp
 import re
 import json
 import os
@@ -65,6 +66,23 @@ def get_orchestrator_details(url, api_key):
         return { "status" : "success", "data" : response.json() }
     except requests.exceptions.RequestException as e:
         logging.error(f"Error fetching orchestrator details: {e}")
+        return {"status": "error", "message": str(e)}
+
+async def get_orchestrator_details_async(url, api_key):
+    """Async version of get_orchestrator_details for use in Discord callbacks"""
+    endpoint_url = f"{url}/api/v1/orchestrator"
+    headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
+    try:
+        async with aiohttp.ClientSession() as session:
+            async with session.get(endpoint_url, headers=headers, timeout=aiohttp.ClientTimeout(total=5)) as response:
+                response.raise_for_status()
+                data = await response.json()
+                return { "status" : "success", "data" : data }
+    except aiohttp.ClientError as e:
+        logging.error(f"Error fetching orchestrator details: {e}")
+        return {"status": "error", "message": str(e)}
+    except Exception as e:
+        logging.error(f"Unexpected error fetching orchestrator details: {e}")
         return {"status": "error", "message": str(e)}
 
 # Services Get users in a certain group
