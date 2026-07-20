@@ -2,6 +2,7 @@ import logging
 import sys
 import requests
 import os
+import re
 import discord
 from . import *
 from .orchestrator import get_peon_orcs, get_orchestrator_details, get_orchestrator_details_async
@@ -20,11 +21,15 @@ def identify_channel(channel_request,args=tuple()):
     args = (permission,) + args
     return args
 
-def build_card(status='err',message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*"):
-    if   status == 'ok':  embed = discord.Embed(description=f"{message}",color=discord.Color.blue())
-    elif status == 'nok': embed = discord.Embed(description=f"{message}",color=discord.Color.orange())
-    elif status == 'err': embed = discord.Embed(description=f"{message}",color=discord.Color.red())
-    else:                 embed = discord.Embed(description=f"{message}")
+def build_card(status='err', message="*HEY DEV, SOMETHING WENT WRONG BUT PEON NEED SOMETHING TO SAY!!!*", title=None):
+    if status == 'ok':
+        embed = discord.Embed(title=title, description=f"{message}", color=discord.Color.blue())
+    elif status == 'nok':
+        embed = discord.Embed(title=title, description=f"{message}", color=discord.Color.orange())
+    elif status == 'err':
+        embed = discord.Embed(title=title, description=f"{message}", color=discord.Color.red())
+    else:
+        embed = discord.Embed(title=title, description=f"{message}")
     return embed
 
 async def build_about_card():
@@ -42,7 +47,7 @@ async def build_about_card():
                     orcstring += f"- Orchestrator: {orc['name']} [UNKNOWN](<https://docs.warcamp.org/development/50_bot_discord/#release-notes>)\n"
             response = response.replace('[ORCHESTRATORS]',f"{orcstring}")
     try:
-        file_contents = requests.get(games_url).text
+        file_contents = requests.get(games_url, timeout=10).text
         servers = "### Supported Games\nBelow is a list of games that are currently supported by the PEON Project.\n"
         for line in file_contents.splitlines():
             if re.search('- \[x\]', line):
@@ -57,16 +62,17 @@ async def build_about_card():
     embed.set_image(url=bot_image) 
     return embed
 
-async def remove_interactions(interaction,keep="0",message_prefix=None):
+async def remove_interactions(interaction, keep=0, message_prefix=None):
         channel = interaction.channel
         logging.debug("Cleaning channel")
         async for message in channel.history(limit=50):
             if ((str(message.author)).split('#')[0] == interaction.client.user.name and message.embeds) and (message.id != keep):
-                if message.embeds[0].image.url and message.embeds[0].image.url == bot_image:
+                first_embed = message.embeds[0]
+                if first_embed.image and first_embed.image.url and first_embed.image.url == bot_image:
                     await message.delete()
-                elif message.embeds[0].thumbnail and message.embeds[0].thumbnail.url == bot_thumbnail:
+                elif first_embed.thumbnail and first_embed.thumbnail.url == bot_thumbnail:
                     await message.delete()
-                elif message.embeds[0].color == discord.Color.yellow():
+                elif first_embed.color == discord.Color.yellow():
                     await message.delete()
                 elif message_prefix:
                     if message.content.startswith(message_prefix):

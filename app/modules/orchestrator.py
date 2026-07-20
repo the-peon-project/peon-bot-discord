@@ -9,6 +9,22 @@ import json
 import os
 from . import *
 
+REQUEST_TIMEOUT = 10
+
+
+def _request_json(method, url, headers=None, json_body=None, timeout=REQUEST_TIMEOUT):
+    """Execute an HTTP request and normalize error handling for callers."""
+    try:
+        response = requests.request(method, url, headers=headers, json=json_body, timeout=timeout)
+        response.raise_for_status()
+        return {"status": "success", "data": response.json()}
+    except requests.exceptions.RequestException as exc:
+        logging.error(f"HTTP request failed [{method}] {url}: {exc}")
+        return {"status": "error", "message": str(exc)}
+    except ValueError as exc:
+        logging.error(f"Invalid JSON response [{method}] {url}: {exc}")
+        return {"status": "error", "message": "Invalid JSON response"}
+
 # Load orchestrators from disk
 def get_peon_orcs():
     try:
@@ -16,17 +32,19 @@ def get_peon_orcs():
         logging.debug("Loading orchestrators file")
         with open(config_file, 'r') as file:
             orchestrators = json.load(file)
-        API_KEY = os.environ.get('LOCAL_API_KEY',None)
-        if API_KEY:
+        api_key = os.environ.get('LOCAL_API_KEY', None)
+        if api_key:
+            updated = False
             for entry in orchestrators:
                 if entry["url"] == "http://peon.orc:5000":
-                    if entry["key"] != API_KEY:
+                    if entry.get("key") != api_key:
                         logging.debug("Updating orchestrator API key")
-                        entry["key"] = f"'{API_KEY}'"
-                        with open(config_file, 'w') as file:
-                            json.dump(orchestrators, file, indent=4)
-                        entry["key"] = API_KEY
-                break
+                        entry["key"] = api_key
+                        updated = True
+                    break
+            if updated:
+                with open(config_file, 'w') as file:
+                    json.dump(orchestrators, file, indent=4)
         return {"status": "success", "data": orchestrators}
     except FileNotFoundError:
         logging.debug("No orchestrators file found. Creating one.")
@@ -47,7 +65,8 @@ def register_peon_orc(orc_name, orc_url, orc_key):
         for entry in orchestrators:
             if entry["name"] == orc_name:
                 return {"status": "error", "info": "Orchestrator already registered."}
-        if (orc_responose := get_orchestrator_details(orc_url, orc_key))['status'] != "success": return {"status": "error", "info": "Orchestrator not available."}
+        if (orc_responose := get_orchestrator_details(orc_url, orc_key))['status'] != "success":
+            return {"status": "error", "info": "Orchestrator not available."}
         orchestrators.append({"name": orc_name, "url": orc_url, "key": orc_key})
         config_file = "/app/config/peon.orchestrators.json"
         with open(config_file, 'w') as file:
@@ -60,13 +79,10 @@ def register_peon_orc(orc_name, orc_url, orc_key):
 def get_orchestrator_details(url, api_key):
     url = f"{url}/api/v1/orchestrator"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error fetching orchestrator details: {e}")
-        return {"status": "error", "message": str(e)}
+    result = _request_json("GET", url, headers=headers)
+    if result["status"] == "success":
+        return {"status": "success", "data": result["data"]}
+    return result
 
 async def get_orchestrator_details_async(url, api_key):
     """Async version of get_orchestrator_details for use in Discord callbacks"""
@@ -106,42 +122,31 @@ def deregister_peon_orc(orc_name):
 def get_servers(url, api_key):
     url = f"{url}/api/v1/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    return (requests.get(url, headers=headers)).json()
+    result = _request_json("GET", url, headers=headers)
+    if result["status"] != "success":
+        return []
+    if isinstance(result["data"], list):
+        return result["data"]
+    return []
 
 def import_servers(url, api_key):
     url = f"{url}/api/v1/servers"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    try:
-        response = requests.put(url, headers=headers)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error importing servers: {e}")
-        return {"status": "error", "message": str(e)}
+    return _request_json("PUT", url, headers=headers)
 
 def get_all_plans(url, api_key):
     url = f"{url}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error getting plans: {e}")
-        return {"status": "error", "message": str(e)}
+    return _request_json("GET", url, headers=headers)
 
 def update_plans(url, api_key):
     url = f"{url}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    try:
-        response = requests.put(url, headers=headers)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error updating plans: {e}")
-        return {"status": "error", "message": str(e)}
+    return _request_json("PUT", url, headers=headers)
 
-def server_create(url, api_key, game_uid, warcamp_name, user_settings={}):
+def server_create(url, api_key, game_uid, warcamp_name, user_settings=None):
+    if user_settings is None:
+        user_settings = {}
     server_uid = f"{game_uid}.{warcamp_name}"
     endpoint_url = f"{url}/api/v1/server/create/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
@@ -153,18 +158,11 @@ def server_create(url, api_key, game_uid, warcamp_name, user_settings={}):
     logging.info(f"Request headers: {headers}")
     logging.info(f"Request body: {body}")
     
-    try:
-        response = requests.put(endpoint_url, headers=headers, json=body)
-        logging.info(f"Response status: {response.status_code}")
-        if response.status_code != 200:
-            logging.error(f"Response text: {response.text}")
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error creating server: {e}")
-        if hasattr(e, 'response') and e.response is not None:
-            logging.error(f"Response content: {e.response.text}")
-        return {"status": "error", "message": str(e)}
+    result = _request_json("PUT", endpoint_url, headers=headers, json_body=body)
+    if result["status"] == "success":
+        return result
+    logging.error(f"Error creating server: {result.get('message', 'Unknown error')}")
+    return result
 
 def test_orchestrator_connectivity(url, api_key):
     """Test connectivity to orchestrator and list available plans"""
@@ -172,14 +170,14 @@ def test_orchestrator_connectivity(url, api_key):
         # Test basic connectivity
         orchestrator_url = f"{url}/api/v1/orchestrator"
         headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-        response = requests.get(orchestrator_url, headers=headers)
+        response = requests.get(orchestrator_url, headers=headers, timeout=REQUEST_TIMEOUT)
         response.raise_for_status()
         
         logging.info(f"Orchestrator connectivity OK: {response.json()}")
         
         # Get available plans
         plans_url = f"{url}/api/v1/plans"
-        plans_response = requests.get(plans_url, headers=headers)
+        plans_response = requests.get(plans_url, headers=headers, timeout=REQUEST_TIMEOUT)
         plans_response.raise_for_status()
         
         plans = plans_response.json()
@@ -198,36 +196,21 @@ def server_delete(url, api_key, server_uid, action="destroy", eradicate=False):
     url = f"{url}/api/v1/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     body = {"eradicate": eradicate} if eradicate else {}
-    try:
-        response = requests.delete(url, headers=headers, json=body)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error deleting server: {e}")
-        return {"status": "error", "message": str(e)}
+    return _request_json("DELETE", url, headers=headers, json_body=body)
 
 def server_get_save_download(url, api_key, server_uid):
     url = f"{url}/api/v1/server/save/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    try:
-        response = requests.get(url, headers=headers)
-        response.raise_for_status()
-        return { "status" : "success", "download_url" : url }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error getting server download: {e}")
-        return {"status": "error", "message": str(e)}
+    result = _request_json("GET", url, headers=headers)
+    if result["status"] == "success":
+        return {"status": "success", "download_url": url}
+    return result
 
 def server_update_description(url, api_key, server_uid, description):
     url = f"{url}/api/v1/server/description/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     body = {"description": description}
-    try:
-        response = requests.put(url, headers=headers, json=body)
-        response.raise_for_status()
-        return { "status" : "success", "data" : response.json() }
-    except requests.exceptions.RequestException as e:
-        logging.error(f"Error updating server description: {e}")
-        return {"status": "error", "message": str(e)}
+    return _request_json("PUT", url, headers=headers, json_body=body)
 
 def get_servers_all(peon_orchestrators):
     response=""
@@ -264,7 +247,7 @@ def refresh_warplans(peon_orchestrators):
     logging.debug('Requesting an update to plans catalogue')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
-    response = requests.put(url, headers=headers)
+    response = requests.put(url, headers=headers, timeout=REQUEST_TIMEOUT)
     if response.status_code != 200:
         return { "status" : "error", "err_code" : "plan.update", "command" : "refresh"}
     else:
@@ -274,7 +257,7 @@ def get_warplans(peon_orchestrators):
     logging.debug('Requesting list of current plans')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plans"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
-    plans = requests.get(url, headers=headers).json()
+    plans = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT).json()
     response = f"*The currently available warplans for your ochestrators.*\n```yaml"
     response += "\n{0:<15} : {1}\n{2:<15} : {2}".format("game_uid","game","---")
     for plan in plans:
@@ -286,8 +269,8 @@ def get_warplan(peon_orchestrators,game_uid):
     logging.debug('Requesting details for the warplan related to {game_uid}')
     url = f"{peon_orchestrators[0]['url']}/api/v1/plan/{game_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': peon_orchestrators[0]['key'] }
-    plan = requests.get(url, headers=headers)
-    if (plan := requests.get(url, headers=headers)).status_code != 200: 
+    plan = requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)
+    if plan.status_code != 200:
         return { "status" : "error", "err_code" : "plan.dne", "command" : "plan"}
     response = f"*Warplan takes the following settings.*\n```json"
     for key, value in plan.json().items():
@@ -299,15 +282,17 @@ def server_backup(url, api_key, server_uid):
     logging.debug(f'[serverBackup] - {server_uid}]')
     url = f"{url}/api/v1/server/save/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
-    return (requests.put(url, headers=headers)).json()
+    return (requests.put(url, headers=headers, timeout=REQUEST_TIMEOUT)).json()
 
-def server_action(url, api_key, server_uid, action, body={}):
+def server_action(url, api_key, server_uid, action, body=None):
+    if body is None:
+        body = {}
     logging.debug(f'[server_action] - {action} requested for {server_uid}: body {body}')
     url = f"{url}/api/v1/server/{action}/{server_uid}"
     headers = { 'Accept': 'application/json', 'X-Api-Key': api_key }
     if action == "get":
-        return (requests.get(url, headers=headers)).json()
-    return (requests.put(url, headers=headers,json=body)).json()
+        return (requests.get(url, headers=headers, timeout=REQUEST_TIMEOUT)).json()
+    return (requests.put(url, headers=headers, json=body, timeout=REQUEST_TIMEOUT)).json()
 
 def server_actions(action,args):
     logging.debug(f"Server action requested: {action}")
@@ -319,14 +304,14 @@ def server_actions(action,args):
     if action != 'get':
         #STEP 2: Get argument information
         logging.debug("STEP 2 - Check for arguments")
-        arg_datetime = look_for_regex_in_args("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
+        arg_datetime = look_for_regex_in_args(r"^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",args)
         if arg_datetime: args.remove(arg_datetime)
-        arg_time = look_for_regex_in_args("^(\d{2})[:h](\d{2})$",args)
+        arg_time = look_for_regex_in_args(r"^(\d{2})[:h](\d{2})$",args)
         if arg_time: args.remove(arg_time)
-        arg_interval = look_for_regex_in_args("^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
+        arg_interval = look_for_regex_in_args(r"^\d+.?$",args) # Look for a string of type D..DC (e.g. 5m, 20h, 3d)
         time_unit=""
         if not arg_interval:
-            if (arg_interval := look_for_regex_in_args("^\d+$",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
+            if (arg_interval := look_for_regex_in_args(r"^\d+$",args)): time_unit = 'm' # If several digits are provided then assume it is a minute count
         if arg_interval: 
             args.remove(arg_interval)
             arg_interval += time_unit
@@ -344,7 +329,7 @@ def server_actions(action,args):
         try:
             servers = get_servers(orchestrator['url'], orchestrator['key'])
             for server in servers:
-                server['orchestrator'] = orchestrator['name'].lower()
+                server['orchestrator'] = orchestrator['name']
             server_list.extend(servers)
         except:
             logging.warning(f"Host {orchestrator} is unavailable.")
@@ -384,11 +369,14 @@ def server_actions(action,args):
     else:
         logging.debug("Server found, skipping to STEP 7")
     server = server_list[0]
-    args.remove(server['servername'])
+    if server['servername'] in args:
+        args.remove(server['servername'])
     if server['game_uid'] in args: args.remove(server['game_uid'])
     logging.debug(f"STEP 7 - Trigger [{action}] action on server")
     serveruid=f"{server['game_uid']}.{server['servername']}"
     orchestrator = next((orc for orc in peon_orchestrators if orc['name'] == server['orchestrator']), None)
+    if orchestrator is None:
+        return {"status": "error", "err_code": "orc.notavailable", "command": action}
     data = server_action(orchestrator['url'],orchestrator['key'],serveruid,'get')
     if "error" in data:
         response = { "status" : "error", "err_code" : "srv.action.error", "command" : action}
@@ -429,7 +417,7 @@ def server_actions(action,args):
             body = {}
             if arg_time:
                 date_string = (datetime.now(pytz.timezone(settings["timezone"])).date().strftime('%Y-%m-%d'))
-                timestring = re.match("^(\d{2})[:h](\d{2})$",arg_time)
+                timestring = re.match(r"^(\d{2})[:h](\d{2})$",arg_time)
                 timestring = f"{date_string} {timestring[1]}:{timestring[2]}:00"
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())
@@ -438,7 +426,7 @@ def server_actions(action,args):
                 body = {"epoch_time" : f"{epoch}"}
                 response += f"\n\n\t:alarm_clock: Warcamp will shut down at ``{timestring}``."
             elif arg_datetime:
-                timestring = re.match("^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
+                timestring = re.match(r"^(\d{4})\W(\d{2})\W(\d{2})\.(\d{2})[:h](\d{2})$",arg_datetime)
                 timestring = (f"{timestring[1]}-{timestring[2]}-{timestring[3]} {timestring[4]}:{timestring[5]}:00")
                 time_tz = pytz.timezone(settings["timezone"]).localize(datetime.strptime(timestring, '%Y-%m-%d %H:%M:%S'))
                 epoch = int(time_tz.timestamp())

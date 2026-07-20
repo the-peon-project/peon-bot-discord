@@ -26,15 +26,23 @@ class PeonBot(commands.Bot):
             intents=intents,
             help_command=None
         )
+        self._startup_tasks_done = False
     
     async def setup_hook(self):
         """Called when the bot is starting up"""
-        # Add persistent views
-        self.add_view(PersistentAdministratorView())
-        self.add_view(PersistentUserView())
-        logging.info("Added persistent views")
+        # Register persistent views only when they satisfy discord.py persistence requirements.
+        try:
+            self.add_view(PersistentAdministratorView())
+            self.add_view(PersistentUserView())
+            logging.info("Added persistent views")
+        except ValueError as exc:
+            logging.warning(f"Skipping persistent view registration: {exc}")
     
     async def on_ready(self):
+        if self._startup_tasks_done:
+            logging.info(f"Connected as @{self.user.name}. Startup tasks already completed.")
+            return
+
         logging.info(f'Connected as bot named @{self.user.name}. Running PEON init tasks...')
         
         # Sync slash commands
@@ -47,9 +55,12 @@ class PeonBot(commands.Bot):
         # Clean channels
         for guild in self.guilds:
             for channel in guild.text_channels:
-                permissions = channel.permissions_for(guild.me)
-                if permissions.send_messages and permissions.read_message_history:
-                    await clean_channel(channel, self.user, limit=100)
+                try:
+                    permissions = channel.permissions_for(guild.me)
+                    if permissions.send_messages and permissions.read_message_history and permissions.manage_messages:
+                        await clean_channel(channel, self.user, limit=100)
+                except Exception as exc:
+                    logging.warning(f"Skipping clean in #{channel.name}: {exc}")
         
         # Notify admin channel
         for guild in self.guilds:
@@ -60,8 +71,13 @@ class PeonBot(commands.Bot):
                     description="Bot has connected and is ready for commands!",
                     color=discord.Color.green()
                 )
-                await admin_channel.send(embed=embed)
+                try:
+                    await admin_channel.send(embed=embed)
+                except Exception as exc:
+                    logging.warning(f"Failed to notify admin channel in {guild.name}: {exc}")
                 break
+
+        self._startup_tasks_done = True
 
 bot = PeonBot()
 
@@ -69,7 +85,8 @@ async def clean_channel(channel, bot_user, limit=10):
     try:
         async for message in channel.history(limit=limit):
             if (message.author == bot_user and message.embeds):
-                if message.embeds[0].image and message.embeds[0].image.url == bot_image:
+                first_embed = message.embeds[0]
+                if first_embed.image and first_embed.image.url == bot_image:
                     await message.delete()
             elif (message.content.startswith(settings.get('command_prefix', '!')) and message.author != bot_user): 
                 await message.delete()
@@ -107,6 +124,9 @@ async def game_type_autocomplete(interaction: discord.Interaction, current: str)
         if 'error' in (result := get_peon_orcs())['status']:
             return []
         
+        if not result['data']:
+            return []
+
         orchestrator = result['data'][0]
         plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
         
@@ -165,7 +185,8 @@ async def peon_slash(
         await interaction.followup.send(embed=embed, view=view)
     else:
         try:
-            gameuid, servername = str(interaction.channel.name).split('-')[:2]
+            channel_name = str(interaction.channel.name)
+            gameuid, servername = channel_name.split('-', 1)
             view = EnhancedUserView(gameuid=gameuid, servername=servername)
             embed.add_field(name="🎮 Server Mode", value=f"Managing **{gameuid}.{servername}**", inline=False)
             await interaction.followup.send(embed=embed, view=view)
@@ -193,7 +214,8 @@ async def server_command(
     # Auto-detect server from channel if not provided
     if not server:
         try:
-            gameuid, servername = str(interaction.channel.name).split('-')[:2]
+            channel_name = str(interaction.channel.name)
+            gameuid, servername = channel_name.split('-', 1)
             server = f"{gameuid}.{servername}"
         except:
             embed = build_card(status='nok', message="❌ Could not auto-detect server from channel name.\nPlease specify server parameter.")
@@ -307,8 +329,10 @@ async def create_server(
         if '404' in error_message or 'NOT FOUND' in error_message:
             # Check available plans
             plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
-            if plans_result['status'] == 'success' and game_type not in plans_result['data']:
-                error_message += f"\n\n**Available games:** {', '.join(plans_result['data'])}"
+            if plans_result['status'] == 'success':
+                available_games = [p.get('game_uid', '') for p in plans_result.get('data', []) if isinstance(p, dict)]
+                if game_type not in available_games and available_games:
+                    error_message += f"\n\n**Available games:** {', '.join(available_games)}"
             else:
                 error_message += f"\n\n**Connectivity issue detected.** Use `/debug test_connectivity` to diagnose."
         
@@ -457,10 +481,15 @@ async def debug_command(
         test_result = test_orchestrator_connectivity(orchestrator['url'], orchestrator['key'])
         
         if test_result['status'] == 'success':
+            available_plans = test_result.get('available_plans', [])
+            if available_plans and isinstance(available_plans[0], dict):
+                available_plan_text = ', '.join([p.get('game_uid', '?') for p in available_plans])
+            else:
+                available_plan_text = ', '.join([str(p) for p in available_plans])
             embed = build_card(
                 status='ok',
                 title="🔧 Orchestrator Connectivity Test",
-                message=f"**Connection Status:** ✅ Connected\n**Available Plans:** {', '.join(test_result['available_plans'])}"
+                message=f"**Connection Status:** ✅ Connected\n**Available Plans:** {available_plan_text or 'None detected'}"
             )
         else:
             embed = build_card(
@@ -473,10 +502,15 @@ async def debug_command(
         plans_result = get_all_plans(orchestrator['url'], orchestrator['key'])
         
         if plans_result['status'] == 'success':
+            plans_data = plans_result.get('data', [])
+            if plans_data and isinstance(plans_data[0], dict):
+                plan_text = ', '.join([p.get('game_uid', '?') for p in plans_data])
+            else:
+                plan_text = ', '.join([str(p) for p in plans_data])
             embed = build_card(
                 status='ok',
                 title="📋 Available Game Plans",
-                message=f"**Available Games:** {', '.join(plans_result['data'])}"
+                message=f"**Available Games:** {plan_text or 'None detected'}"
             )
         else:
             embed = build_card(
