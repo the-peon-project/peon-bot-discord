@@ -1,3 +1,10 @@
+> **⚠️ DEPRECATED — moved to the `peon` monorepo.** This repo's content now lives at
+> `peon/services/bot-discord` (full history preserved via `git subtree`). See
+> `/home/richard/development/peon/services/bot-discord/CLAUDE.md` for the current guide. This repo
+> is archived and read-only.
+
+---
+
 # PEON Discord Bot Guide
 
 This repo contains the Discord bot interface for PEON.
